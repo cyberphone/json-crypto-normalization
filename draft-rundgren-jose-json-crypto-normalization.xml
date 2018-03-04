@@ -52,7 +52,7 @@
      <t>
        The intended users of this specification are JSON tool vendors who may need
        updating their products in order to support emerging schemes building on ECMAScript
-       JSON processing rules.  The latter also have uses outside of cryptography.
+       JSON processing rules.  The latter also have utility outside of cryptography.
      </t>
    </abstract>
  </front>
@@ -123,207 +123,106 @@
             x0a, x0d or x20.
           </t>
           <t>
-            All JSON escape sequences (\/ \&quot; \\ \b \f \n \r \t \uhhhh) within quoted strings 
+            All JSON escape sequences (\/ \&quot; \\ \b \f \n \r \t \uhhhh) within quoted strings
             MUST be converted to their proper single character internal representation.
           </t>
         </list>
       </t>
     </section>
     <section title="Preserving JSON Property Order">
-    <t>
-      It is common knowledge that the order of properties in JSON is insignificant.
-    </t>
-    <t>
-      However, this is not equivalent with disrespecting the order in which properties
-      are supplied in JSON data during parsing or serialization.
-      It is obvious that if you create a JSON object like
-    </t>
-    <t>
-      <figure align="center">
-    <artwork>
-        <![CDATA[    {
-      "Name": "John Doe",
-      "Address": "2000 Sunset Boulevard",
-      "City": "Los Angeles",
-      "Zip": "90001",
-      "State": "CA"
-    }]]></artwork>
-      </figure>
-    </t>
-    <t>
-      and it would serialize like
-    </t>
-    <t>
-      <figure align="center">
-    <artwork>
-        <![CDATA[    {
-      "Zip": "90001",
-      "Address": "2000 Sunset Boulevard",
-      "City": "Los Angeles",
-      "Name": "John Doe",
-      "State": "CA"
-    }]]></artwork>
-      </figure>
-    </t>
-    <t>
-      the result would not only possibly surprise the developer; it would completely break a signature.
-    </t>
-    <t>
-      ECMAScript does with a minor exception described in <xref target="ES6Interoperability"/>,
-      maintain an internal &quot;Creation Order&quot; of properties which applies to the
-      following for JCN core operations:
-    </t>
-    <t>
-      <list style="symbols">
-        <t>
-          Creation of JSON object:
-          <list style="empty">
-            <t>obj = {}</t>
-          </list>
-        </t>
-        <t>
-          Parsing of JSON string data:
-          <list style="empty">
-            <t>obj = JSON.parse('...')</t>
-          </list>
-        </t>
-        <t>
-          Serialization to JSON string:
-          <list style="empty">
-            <t>... = JSON.stringify(obj)</t>
-          </list>
-        </t>
-        <t>
-          Cloning of JSON object:
-          <list style="empty">
-            <t>... = Object.assign({}, obj)</t>
-          </list>
-        </t>
-        <t>
-          Deletion of JSON property:
-          <list style="empty">
-            <t>delete obj.property</t>
-          </list>
-        </t>
-        <t>
-          Addition of JSON property:
-          <list style="empty">
-            <t>obj.property = ...</t>
-          </list>
-        </t>
-      </list>
-    </t>
-    <t>
-      Although the above is specified in ECMAScript, a JCN compliant JSON tool kit
-      for another platform MUST be able providing similar functionality.
-    </t>
-  </section>
-    <section title="JSON Data Normalization">
       <t>
-        In order to The <spanx style="verb">signature</spanx> Header Parameter contains the
-        base64url-encoded JWS Signature as a string.
+        It is common knowledge that the order of properties in JSON is insignificant.
+      </t>
+      <t>
+        However, this is not equivalent with disrespecting the order in which properties
+        are supplied in JSON data during parsing or serialization.
+        It is obvious that if you create a JSON object like
+      </t>
+      <t>
+        <figure align="center">
+          <artwork><![CDATA[    {
+      "Name": "John Doe",
+      "Address": "2000 Sunset Boulevard",
+      "City": "Los Angeles",
+      "Zip": "90001",
+      "State": "CA"
+    }]]></artwork>
+        </figure>
+      </t>
+      <t>
+        and it would serialize like
+      </t>
+      <t>
+        <figure align="center">
+          <artwork><![CDATA[    {
+      "Zip": "90001",
+      "Address": "2000 Sunset Boulevard",
+      "City": "Los Angeles",
+      "Name": "John Doe",
+      "State": "CA"
+    }]]></artwork>
+        </figure>
+      </t>
+      <t>
+        the result would not only possibly surprise the developer; it would completely break a signature.
+      </t>
+      <t>
+        ECMAScript does with a minor exception described in <xref target="ES6Interoperability"/>,
+        maintain an internal &quot;Creation Order&quot; of properties which applies to the
+        following (for JCN) core operations:
+      </t>
+      <t>
+        <list style="symbols">
+          <t>
+            Creation of JSON object:
+            <list style="empty">
+              <t>obj = {}</t>
+            </list>
+          </t>
+          <t>
+            Parsing of JSON string data:
+            <list style="empty">
+              <t>obj = JSON.parse('...')</t>
+            </list>
+          </t>
+          <t>
+            Serialization to JSON string:
+            <list style="empty">
+              <t>... = JSON.stringify(obj)</t>
+            </list>
+          </t>
+          <t>
+            Cloning of JSON object:
+            <list style="empty">
+              <t>... = Object.assign({}, obj)</t>
+            </list>
+          </t>
+          <t>
+            Deletion of JSON property:
+            <list style="empty">
+              <t>delete obj.property</t>
+            </list>
+          </t>
+          <t>
+            Addition of JSON property:
+            <list style="empty">
+              <t>obj.property = ...</t>
+            </list>
+          </t>
+        </list>
+      </t>
+      <t>
+        Although the above is specified here using ECMAScript, a JCN compliant JSON tool kit
+        for another platform MUST be able providing the same functionality.
       </t>
     </section>
-    <section anchor="SignersHeaderParameter" title="The &quot;signers&quot; Header Parameter">
+    <section title="JSON Data Normalization">
       <t>
-        The optional <spanx style="verb">signers</spanx> Header Parameter contains an
-        array of signatures.  See <xref target="MultipleSignatures" />.
+        In order to TBD
       </t>
     </section>
   </section>
 
-  <section anchor="ProducingConsumingCleartextJWSs" title="Producing and Consuming Cleartext JWSs">
-    <section anchor="MessageSignatureMACComputation" title="Message Signature or MAC Computation">
-      <t>
-        To create a Cleartext JWS, the following steps are performed.  The order of the
-        steps is not significant in cases where there are no dependencies
-        between the inputs and outputs of the steps.
-      </t>
-      <t>
-        <list style="numbers">
-          <t>
-            Create the JSON object to be signed.
-          </t>
-          <t>
-            Create the <spanx style="verb">__cleartext_signature</spanx> object with the header parameters to be used and add it
-            as a top-level member to the object to be signed with the key
-            <spanx style="verb">__cleartext_signature</spanx>.
-          </t>
-          <t>
-            Serialize the object to be signed using the Serialization and
-            normalization rules defined in
-            <xref target="Serialization" />.
-          </t>
-          <t>
-            Compute the JWS Signature in the manner defined for the particular
-            algorithm being used over the serialized object to be signed. The
-            <spanx style="verb">alg</spanx> (algorithm) Header Parameter MUST be present in the <spanx style="verb">__cleartext_signature</spanx>
-            member, with the algorithm value accurately representing the
-            algorithm used to construct the JWS Signature.
-          </t>
-          <t>
-            Add the <spanx style="verb">signature</spanx> member to the signature object with the encoded
-            Cleartext JWS signature and assign it the string value BASE64URL(JWS Signature).
-          </t>
-        </list>
-      </t>
-    </section>
-    <section anchor="MessageSignatureMACValidation" title="Message Signature or MAC Validation">
-      <t>
-        When validating a Cleartext JWS, the following steps are performed.  The order
-        of the steps is not significant in cases where there are no
-        dependencies between the inputs and outputs of the steps.  If any of
-        the listed steps fails, then the input MUST be rejected.
-      </t>
-      <t>
-        When there are multiple Cleartext JWS Signature values, it is an application
-        decision which of the Cleartext JWS Signature values must successfully validate
-        for the Cleartext JWS to be accepted.  In some cases, all must successfully
-        validate, or the Cleartext JWS will be considered invalid.  In other cases,
-        only a specific Cleartext JWS Signature value needs to be successfully
-        validated.  However, in all cases, at least one Cleartext JWS Signature value
-        MUST successfully validate, or the Cleartext JWS MUST be considered invalid.
-      </t>
-      <t>
-        <list style="numbers">
-          <t>
-            Parse JSON data including enveloped signature.
-          </t>
-          <t>
-            Verify that the implementation understands and can process all
-            fields that it is required to support, whether required by this
-            specification, by the algorithm being used, or by the <spanx style="verb">crit</spanx>
-            Header Parameter value, and that the values of those parameters
-            are also understood and supported.
-          </t>
-          <t>
-            Save and remove the <spanx style="verb">signature</spanx> member from the signature object and
-            base64url-decode the encoded representation of the Cleartext JWS Signature.
-          </t>
-          <t>
-            Serialize and normalize the signed object including the signature
-            object, by following the rules in
-            <xref target="Serialization" />.
-          </t>
-          <t>
-            Validate the Cleartext JWS Signature against the Cleartext JWS Signing Input, i.e., the
-            Serialized and Normalized data, in the manner defined for the
-            algorithm being used, which MUST be accurately represented by the
-            value of the <spanx style="verb">alg</spanx> (algorithm) Header Parameter value,
-	    which MUST be present. Record whether the
-            validation succeeded or not.
-          </t>
-          <t>
-            Return a result indicating whether or not the Cleartext JWS was
-            successfully validated.
-          </t>
-          <t>
-            For later validation of the signed object, put back the <spanx style="verb">signature</spanx>
-            member back into the JSON data structure.
-          </t>
-        </list>
-      </t>
-    </section>
     <section anchor="Serialization" title="Serialization and Normalization">
       <t>
         When having header parameters in cleartext serialization of them needs to be
@@ -425,111 +324,19 @@
         </t>
       </section>
     </section>
-    <section anchor="MultipleSignatures" title="Multiple Signatures">
-      <t>
-        Multiple signatures enable different keys to independently of each other
-        add a signature to a JSON object.
-      </t>
-      <t>
-        The normalization procedure is essentially the same as for single
-        signatures but must also take the following in account as well:
-        <list style="symbols">
-          <t>
-            There MUST be an additional Cleartext JWS Header parameter <spanx style="verb">signers</spanx>, holding an array
-            of signature constructs.
-          </t>
-          <t>
-            Each signature requires its own normalization process. During this
-            process, the other signature constructs MUST (temporarily) be removed.
-          </t>
-          <t>
-            The normalized data MUST include the array brackets ([]) but MUST NOT
-            include the comma separating the signature constructs.
-          </t>
-          <t>
-            A signature construct is equivalent to an ordinary Cleartext JWS object,
-            but MAY exclude the <spanx style="verb">alg</spanx> Header parameter which then
-            MUST be declared in the Cleartext JWS object itself.  Using the latter arrangement,
-            all enclosed signature constructs MUST use the same algorithm as well as not
-            specifying the <spanx style="verb">alg</spanx> Header parameter.
-            See <xref target="multipleglobalalg"/> for an example.
-          </t>
-          <t>
-            If a <spanx style="verb">crit</spanx> Header parameter is specified in
-            the Cleartext JWS object itself, this declaration MUST be applied to
-            all signature constructs. Such a declaration MUST NOT be combined
-            with <spanx style="verb">crit</spanx> Header parameters in
-            the enclosed signature constructs.
-            See <xref target="multipleglobalcrit"/> for an example.
-          </t>
-      </list>
-      </t>
-      <t>
-        The following example shows a multiply signed object:
-      </t>
-      <t>
-        <figure align="center">
-          <artwork>
-<![CDATA[{
-  "iss": "joe",
-  "exp": 1300819380,
-  "escapeMe": "\u20ac$\u000F\u000aA'\u0042\u0022\u005c\\\"\/",
-  "numbers": [1e+30,4.5,6],
-  "__cleartext_signature": {
-    "signers": [{
-      "alg": "ES256",
-      "kid": "example.com:p256",
-      "signature": "83gr5rmjKgngLTaPpxuQWiZaQmlQ555jLHNcZLmcBpg
-                    X7JZLeqrNhIrQRg3jTsNwh1RuibDYBzCsaxVUkhGEKg"
-    },{
-      "alg": "RS256",
-      "kid": "example.com:r2048",
-      "signature": "PVQeL8XtjnetambQe98FuMBDuijwWTIFXouyNjL8WX0
-                    WvamWkHjv34Iz8VOHHWr9w8t14FXJJuQ22j-h5BR7qP
-                    xE7cBVS8XSltR7VvcNidfn-r-TtAVwDwn7Iz_Gk-RI7
-                    QIv4ctbreYt1myG64Ikw38OEmNURCxzf9h9w3tvA3R8
-                    ZE3MYgELFaQRowSW92JC1HhGZRijzHoIzvH6l_GULP_
-                    hf7kggwFNtRrzN8DLXbhBhGaoP-O0cNZsCWY2hbNU6L
-                    7km6bdrqHdq88DSOEGg_-5T6qUsIAYbmCgUK7XBi2q-
-                    DRPQZYnxr5570mj9Nkh0hpZ-VfAC2ftbzxFAB7ZYg"
-    }]
-  }
-}]]></artwork>
-        </figure>
-    </t>
-      <t>
-        The ECDSA signature can be validated using the key specified in <xref target="example.com:p256"/>,
-      while the RSA signature can be validated using the key specified in <xref target="example.com:r2048"/>.
-      </t>
-    </section>
-  </section>
 
   <section anchor="IANA" title="IANA Considerations">
-      <section anchor="IANAJSONHeaderParametersRegistry" title="JSON Header Parameters Registry">
-        <t>
-          This section registers the <spanx style="verb">signature</spanx>
-          and <spanx style="verb">signers</spanx> header parameter in the "JSON Web
-          Signature and Encryption Header Parameters" registry
-          in the manner described in <xref target="RFC7515"/>.
-        </t>
-     </section>
-    </section>
+    <t>TDB</t>
+  </section>
 
   <section anchor="Security" title="Security Considerations">
     <t>
-      This specification does (to the authors' knowledge), not introduce
-      additional vulnerabilities over what is specified for JWS
-      <xref target="RFC7515"/>.
-    </t>
+TDB
+</t>
   </section>
 
   <section anchor="Acknowledgements" title="Acknowledgements">
     <t>
-      This document builds on the work done in the JOSE WG so a big thanks goes out
-      to all involved in that work. It is specifically inspired by JWS, so a
-      special thanks to the authors of that document, Michael B. Jones, John Bradley,
-      and Nat Sakimura.
-      </t><t>
       Building on ES6 number normalization was originally
       proposed by James Manger. This ultimately led to
       the adoption of the entire ES6 JSON processing model.
