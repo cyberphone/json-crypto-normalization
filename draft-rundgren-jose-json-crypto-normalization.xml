@@ -13,7 +13,7 @@
 <rfc category="info" docName="draft-rundgren-jose-json-crypto-normalization-00" ipr="trust200902">
  <front>
    <title abbrev="draft-rundgren-jose-json-crypto-normalization">
-     Cleartext JSON Web Signature (JWS)
+     JSON Crypto Normalization (JCN)
    </title>
 
    <author fullname="Anders Rundgren" initials="A." surname="Rundgren">
@@ -40,16 +40,19 @@
 
    <abstract>
      <t>
-       Cleartext JSON Web Signature (JWS) represents signed data as cleartext JSON objects.
-       The signature is included in the JSON object to be signed.
-       Cleartext JWS builds on JWS <xref target="RFC7515"/>, JWA
-       <xref target="RFC7518"/> and JWK <xref target="RFC7517"/>,
-       including for representations of header parameters, algorithms, and cryptographic keys.
-       Serialization of the JSON object to be signed uses the predictable
-       serialization defined in ECMAScript version 6.
-       Cleartext JWS reuses data structures and semantics from JWS whenever practical and reasonable.
-       Cryptographic algorithms and identifiers used by this specification
-       are defined in the JSON Web Algorithms specification.
+       Cryprographic operations like hashing and signing depend on that the
+       target data does not change during serialization, transport, or parsing.
+       By applying the JCN (JSON Crypto Normalization) scheme, data provided in the
+       JSON <xref target="RFC8259"/> format can be used &quot;as is&quot;,
+       while still being suitable for cryptograpgic operations.
+       JCN achieves this by exploiting the strict predictability
+       offered by the JSON parsing and serialization methods defined in
+       ECMAScript version 6 <xref target="ES6"/>.
+     </t>
+     <t>
+       The intended users of this specification are JSON tool vendors who may need
+       updating their products in order to support emerging schemes building on ECMAScript
+       JSON processing rules.  The latter also have uses outside of cryptography.
      </t>
    </abstract>
  </front>
@@ -57,74 +60,29 @@
 <middle>
   <section anchor="Introduction" title="Introduction">
     <t>
-      Cleartext JSON Web Signature (JWS) represents signed data as cleartext JSON <xref target="RFC8259"/> objects.
-      The signature is included in the JSON object to be signed.
-      By enveloping the signature in the JSON object to be signed, it is easy to
-      inspect data in transit and when archived, integrity can be guaranteed.
-      Cryptographic algorithms and identifiers used by this specification
-      are defined in the JSON Web Algorithms (JWA) <xref target="RFC7518" /> specification.
+      Cryptographic operations like hashing and signing depend on that the
+      target data does not change during serialization, transport, or parsing.
+      A straightforward way of accomplishing this is converting the data into
+      a format which has a simple and fix representation like Base64Url <xref target="RFC4648"/>
+      which for example have been used in JWS <xref target="RFC7518"/>.
+      Another solution is creating a canonicalized version of the target data
+      with XML Signature <xref target="XMLDSIG"/> as a prime example.
+      </t>
+    <t>
+      Although the mentioned approaches obviously work, the ability
+      applying cryptographic operations on JSON data (without encoding it
+      in Base64Url or having to rely on standalone canonicalizers) became
+      fully realistic with the advent of ECMAScript (aka JavaScript) version 6.
     </t>
     <t>
-      Cleartext JWS reuses constructs from JWS, JWA, and JWK whenever practical and reasonable.
-      Header parameters from JWS, algorithms from JWA, and the key representation JWK are used.
-      There are two essential differences from JWS.
-      First, Cleartext JWS signatures are included in the signed data.
-      Second, Cleartext JWS depends on predictable JSON Serialization
-      rather than base64url encoding the data to be signed.
-      The table below shows the primary characteristics of the JWS variants:
-      </t>
-      <texttable>
-        <ttcol align="left"></ttcol>
-        <ttcol align="left">JWS</ttcol>
-        <ttcol align="left">Cleartext JWS</ttcol>
-        <c>Data&nbsp;to&nbsp;be&nbsp;Signed</c>
-        <c>Any&nbsp;type and&nbsp;format</c>
-        <c>
-          Non-intrusive signature object
-          for inclusion in arbitrary JSON
-          and JavaScript objects
-        </c>
-        <c>Encoding&nbsp;of&nbsp;Signed&nbsp;Data</c>
-        <c>Base64Url</c>
-        <c>None</c>
-        <c>Encoding&nbsp;of&nbsp;Header&nbsp;Data</c>
-        <c>Base64Url</c>
-        <c>None</c>
-        <c>URL Friendly</c>
-        <c>Core&nbsp;feature</c>
-        <c>Out of scope</c>
-      </texttable>
+      Realistic in this context means &quot;available&quot; since ECMAScript
+      compatible JSON processing is already supported by most Web browsers,
+      Node.js <xref target="NODEJS"/>,
+      as well as in third party libaries like Open&nbsp;Keystore <xref target="OPENKEY"/>. 
+    </t>
     <t>
-      In the following example, there are a few things to note.
-      The signature is included in the data (aka enveloped signature).
-      The members in the <spanx style="verb">__cleartext_signature</spanx> object are the JWS
-      header parameters.
-      The <spanx style="verb">signature</spanx> member contains the base64url encoded signature bytes.
-      </t>
-    <t>
-      <figure align="center">
-        <artwork>
-<![CDATA[{
-  "iss": "joe",
-  "exp": 1300819380,
-  "escapeMe": "\u20ac$\u000F\u000aA'\u0042\u0022\u005c\\\"\/",
-  "numbers": [1e+30,4.5,6],
-  "__cleartext_signature": {
-    "alg": "ES256",
-    "kid": "example.com:p256",
-    "signature": "pXP0GFHms0SntctNk1G1pHZfccVYdZkmAJktY_hpMsI
-                  AckzX7wZJIJNlsBzmJ1_7LmKATiW-YHHZjsYdT96JZw"
-  }
-}]]></artwork>
-      </figure>
-      </t>
-      <t>Note that the <spanx style="verb">signature</spanx> value was cut in two to cope with RFC line length constraints.</t>
-    <t>
-      The key specified in <xref target="example.com:p256"/> can be used for verifying the example signature.
-    </t><t>
-    Note: Recreating the example signature using the example private key would normally
-    result in a different <spanx style="verb">signature</spanx> value
-    since ECDSA relies on random data for signature generation.
+        The JCN specification describes how ECMAscript's JSON processing
+        rules can be used for supporting &quot;Crypto Safe&quot; JSON.
     </t>
   </section>
 
@@ -138,30 +96,116 @@
     </t>
   </section>
 
-  <section anchor="SignatureObject" title="The Signature Object">
+  <section title="Operation">
     <t>
-      When signing JSON data with Cleartext JWS a JSON object with the
-      JWS Header Parameters are created and placed within the JSON data to be
-      signed. In addition to the already defined JWS Header Parameters
-      Cleartext JWS defines two new Header Parameters <spanx style="verb">signature</spanx>
-      for the base64url encoded signature value and <spanx style="verb">signers</spanx>
-      to support multiple signers within the same signature object.
+      This section outlines the core issues facing designers of &quot;Crypto Safe&quot;
+      JSON and how they are addressed by ECMAScript.
+    </t>
+    <section title="Core JSON Processing">
+      <t>
+        When parsing JSON string data the following MUST be taken in account:
+      </t>
+      <t>
+        <list style="symbols">
+          <t>
+            The input data MUST conform to JSON as specified in <xref target="RFC8259"/>.
+            Note: ECMAScript's <spanx style="verb">JSON.parse()</spanx> requires
+            externally supplied UTF-8 <xref target="UNICODE"/> encoded data to be
+            converted to the internal ECMAScript string format before processing.
+          </t>
+          <t>
+            The property names within a JSON object MUST be unique.  Note: this is
+            currently not checked by ECMAScript compatible parsers.
+          </t>
+          <t>
+            Whitespace MUST be removed which in practical terms means removal
+            of all characters outside of quoted strings having a value of x09,
+            x0a, x0d or x20.
+          </t>
+          <t>
+            All JSON escape sequences (\/ \&quot; \\ \b \f \n \r \t \uhhhh) within quoted strings 
+            MUST be converted to their proper single character internal representation.
+          </t>
+        </list>
+      </t>
+    </section>
+    <section title="Preserving JSON Property Order">
+    <t>
+      It is common knowledge that the order of properties in JSON is insignificant.
     </t>
     <t>
-      The identifier for the Cleartext Signature Object in the JSON data to be
-      signed MUST be <spanx style="verb">__cleartext_signature</spanx>, unless
-      the application specifies that a different identifier is to be used.
+      However, this is not equivalent with disrespecting the order in which properties
+      are supplied in JSON data during parsing or serialization.
+      It is obvious that if you create a JSON object like
     </t>
-  <section anchor="SignatureScope" title="Signature Scope">
     <t>
-      The scope of a signature, what is actually signed, comprises all
-      properties including possible child objects of the JSON object holding
-      the signature property except for the <spanx style="verb">signature</spanx> member.
+      <figure align="center">
+    <artwork><![CDATA[    {
+      "Name": "John Doe",
+      "Address": "Sunset Blvd 2000",
+      "City": "Los Angeles",
+      "Zip": "90000",
+      "State": "CA"
+    }]]></artwork>
+      </figure>
+    </t>
+    <t>
+      and it would serialize like
+    </t>
+    <t>
+      <figure align="center">
+    <artwork><![CDATA[    {
+      "Zip": "90000",
+      "Address": "Sunset Blvd 2000",
+      "City": "Los Angeles",
+      "Name": "John Doe",
+      "State": "CA"
+    }]]></artwork>
+      </figure>
+    </t>
+    <t>
+      the result would not only possibly surprise the developer; it would completely break a signature.
+    </t>
+    <t>
+      ECMAScript does with a minor exception described in <xref target="ES6Interoperability"/>,
+      maintain an internal &quot;Creation Order&quot; of properties which applies to the
+      following for JCN core operations:
+    </t>
+    <t>
+      <list style="symbols">
+        <t>
+          Creation of JSON object: <spanx style="verb">obj = {}</spanx>
+          <list style="empty">
+            <t>obj = {}</t>
+          </list>
+        </t>
+        <t>
+        </t>
+        <t>
+          Parsing of JSON string data: <spanx style="verb">obj = JSON.parse('...')</spanx>
+        </t>
+        <t>
+          Serialization to JSON string: <spanx style="verb">... = JSON.stringify(obj)</spanx>
+        </t>
+        <t>
+          Cloning of JSON object: <spanx style="verb">... = Object.assign({}, obj)</spanx>
+        </t>
+        <t>
+          Deletion of JSON property: <spanx style="verb">delete obj.property</spanx>
+        </t>
+        <t>
+          Addition of JSON property: <spanx style="verb">obj.property = ...</spanx>
+      </t>
+      </list>
+    </t>
+    <t>
+      Although the above is specified in ECMAScript, a JCN compliant JSON tool kit
+      for another platform MUST be able providing similar functionality.
     </t>
   </section>
-    <section anchor="SignatureHeaderParameter" title="The &quot;signature&quot; Header Parameter">
+    <section title="JSON Data Normalization">
       <t>
-        The <spanx style="verb">signature</spanx> Header Parameter contains the
+        In order to The <spanx style="verb">signature</spanx> Header Parameter contains the
         base64url-encoded JWS Signature as a string.
       </t>
     </section>
@@ -453,25 +497,7 @@
           Signature and Encryption Header Parameters" registry
           in the manner described in <xref target="RFC7515"/>.
         </t>
-        <section anchor="IANAJSONHeaderParametersRegistryContents" title="Registry Contents">
-          <t>
-            <list style='symbols'>
-              <t>Header Parameter Name: <spanx style="verb">signature</spanx></t>
-              <t>Header Parameter Description: The base64url-encoded signature value.</t>
-              <t>Header Parameter Usage Location(s): <spanx style="verb">CT-JWS</spanx></t>
-              <t>Change Controller: IESG</t>
-              <t>Specification Document(s): <xref target="SignatureHeaderParameter"/></t>
-            </list>
-            <list style='symbols'>
-              <t>Header Parameter Name: <spanx style="verb">signers</spanx></t>
-              <t>Header Parameter Description: List of signers, each with a set of headers and a signature.</t>
-              <t>Header Parameter Usage Location(s): <spanx style="verb">CT-JWS</spanx></t>
-              <t>Change Controller: IESG</t>
-              <t>Specification Document(s): <xref target="SignersHeaderParameter"/></t>
-            </list>
-          </t>
-        </section>
-      </section>
+     </section>
     </section>
 
   <section anchor="Security" title="Security Considerations">
@@ -501,6 +527,7 @@
      <?rfc include='reference.RFC.2119'?>
      <?rfc include='reference.RFC.8259'?>
      <?rfc include='reference.RFC.7515'?>
+     <?rfc include='reference.RFC.4648'?>
      <?rfc include='reference.RFC.7517'?>
      <?rfc include='reference.RFC.7518'?>
      <?rfc include='reference.RFC.8174'?>
@@ -510,6 +537,40 @@
          <title>ECMAScript 2015 Language Specification</title>
          <author>
            <organization>Ecma International</organization>
+         </author>
+         <date/>
+       </front>
+     </reference>
+     <reference anchor="UNICODE" target="https://www.unicode.org/versions/Unicode10.0.0/">
+       <front>
+         <title>The Unicode Standard, Version 10.0.0</title>
+         <author>
+           <organization>The Unicode Consortium</organization>
+         </author>
+         <date/>
+       </front>
+     </reference>
+   </references>
+   <references title="Informal References">
+     <reference anchor="NODEJS" target="https://nodejs.org">
+       <front>
+         <title>Node.js</title>
+         <author/>
+         <date/>
+       </front>
+     </reference>
+     <reference anchor="OPENKEY" target="https://github.com/cyberphone/openkeystore">
+       <front>
+         <title>Open Keystore</title>
+         <author/>
+         <date/>
+       </front>
+     </reference>
+     <reference anchor="XMLDSIG" target="https://www.w3.org/TR/xmldsig-core1/">
+       <front>
+         <title>XML Signature Syntax and Processing Version 1.1</title>
+         <author>
+           <organization>W3C</organization>
          </author>
          <date/>
        </front>
