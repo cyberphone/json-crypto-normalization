@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="US-ASCII"?>
+<?xml version="1.0" encoding="us-ascii"?>
 <?xml-stylesheet type='text/xsl' href='rfc2629.xslt' ?>
 <!DOCTYPE rfc SYSTEM "rfc2629.dtd">
 
@@ -140,11 +140,12 @@
     </t>
     <t>
       <figure align="center">
-    <artwork><![CDATA[    {
+    <artwork>
+        <![CDATA[    {
       "Name": "John Doe",
-      "Address": "Sunset Blvd 2000",
+      "Address": "2000 Sunset Boulevard",
       "City": "Los Angeles",
-      "Zip": "90000",
+      "Zip": "90001",
       "State": "CA"
     }]]></artwork>
       </figure>
@@ -154,9 +155,10 @@
     </t>
     <t>
       <figure align="center">
-    <artwork><![CDATA[    {
-      "Zip": "90000",
-      "Address": "Sunset Blvd 2000",
+    <artwork>
+        <![CDATA[    {
+      "Zip": "90001",
+      "Address": "2000 Sunset Boulevard",
       "City": "Los Angeles",
       "Name": "John Doe",
       "State": "CA"
@@ -174,28 +176,41 @@
     <t>
       <list style="symbols">
         <t>
-          Creation of JSON object: <spanx style="verb">obj = {}</spanx>
+          Creation of JSON object:
           <list style="empty">
             <t>obj = {}</t>
           </list>
         </t>
         <t>
+          Parsing of JSON string data:
+          <list style="empty">
+            <t>obj = JSON.parse('...')</t>
+          </list>
         </t>
         <t>
-          Parsing of JSON string data: <spanx style="verb">obj = JSON.parse('...')</spanx>
+          Serialization to JSON string:
+          <list style="empty">
+            <t>... = JSON.stringify(obj)</t>
+          </list>
         </t>
         <t>
-          Serialization to JSON string: <spanx style="verb">... = JSON.stringify(obj)</spanx>
+          Cloning of JSON object:
+          <list style="empty">
+            <t>... = Object.assign({}, obj)</t>
+          </list>
         </t>
         <t>
-          Cloning of JSON object: <spanx style="verb">... = Object.assign({}, obj)</spanx>
+          Deletion of JSON property:
+          <list style="empty">
+            <t>delete obj.property</t>
+          </list>
         </t>
         <t>
-          Deletion of JSON property: <spanx style="verb">delete obj.property</spanx>
+          Addition of JSON property:
+          <list style="empty">
+            <t>obj.property = ...</t>
+          </list>
         </t>
-        <t>
-          Addition of JSON property: <spanx style="verb">obj.property = ...</spanx>
-      </t>
       </list>
     </t>
     <t>
