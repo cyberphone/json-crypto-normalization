@@ -67,7 +67,7 @@
         target data does not change during serialization, transport, or parsing.
         A straightforward way of accomplishing this is converting the data into
         a format which has a simple and fix representation like Base64Url <xref target="RFC4648"/>
-        which for example have been used in JWS <xref target="RFC7518"/>.
+        which for example have been used in JWS <xref target="RFC7515"/>.
         Another solution is creating a canonicalized version of the target data
         with XML Signature <xref target="XMLDSIG"/> as a prime example.
       </t>
@@ -131,7 +131,7 @@
             <t>
               All JSON escape sequences (\/ \&quot; \\ \b \f \n \r \t \uhhhh) within quoted strings
               MUST be converted to their proper single character internal representation.
-              ES6 defines this behavior in Section 11.8.4.
+              ES6 defines this behavior in Section <xref target="ES6" format="none">11.8.4</xref>.
             </t>
           </list>
         </t>
@@ -147,13 +147,13 @@
         </t>
         <t>
           <figure align="center">
-            <artwork><![CDATA[    {
-      "Name": "John Doe",
-      "Address": "2000 Sunset Boulevard",
-      "City": "Los Angeles",
-      "Zip": "90001",
-      "State": "CA"
-    }]]></artwork>
+            <artwork><![CDATA[  {
+    "Name": "John Doe",
+    "Address": "2000 Sunset Boulevard",
+    "City": "Los Angeles",
+    "Zip": "90001",
+    "State": "CA"
+  }]]></artwork>
           </figure>
         </t>
         <t>
@@ -161,13 +161,13 @@
         </t>
         <t>
           <figure align="center">
-            <artwork><![CDATA[    {
-      "Zip": "90001",
-      "Address": "2000 Sunset Boulevard",
-      "City": "Los Angeles",
-      "Name": "John Doe",
-      "State": "CA"
-    }]]></artwork>
+            <artwork><![CDATA[  {
+    "Zip": "90001",
+    "Address": "2000 Sunset Boulevard",
+    "City": "Los Angeles",
+    "Name": "John Doe",
+    "State": "CA"
+  }]]></artwork>
           </figure>
         </t>
         <t>
@@ -176,7 +176,8 @@
         </t>
         <t>
           ES6 does with a minor exception described in <xref target="es6.interoperability"/>,
-          maintain an internal &quot;Creation Order&quot; of properties, per Section 9.1.12 of ES6.
+          maintain an internal &quot;Creation&nbsp;Order&quot; of properties, per 
+          Section <xref target="ES6" format="none">9.1.12</xref> of ES6.
           This applies to the following JCN core operations:
         </t>
         <t>
@@ -232,135 +233,70 @@
       </section>
       <section anchor="Serialization" title="JSON Serialization">
         <t>
-          When having header parameters in cleartext serialization of them needs to be
-          consistent across platforms. JSON <xref target="RFC8259" /> by itself does not produce
-          predictable serialization of data. However, ES6 <xref target="ES6"/> defines how to produce
-          JSON that is predictable. By following the ES6 serialization directives,
-          one gets predictable results, i.e., the JSON serializer MUST follow the
-          directives set out by ES6 when serializing data. The rules defined below
-          take the essence from the ES6 specification and list what that means
-          in practical terms.
+          Assume that you parse a JSON object like the following
+          using the rules outlined in the previous sections:
         </t>
         <t>
-          Rules for serialization:
+          <figure align="center">
+            <artwork><![CDATA[  {
+    "escaping": "\u20ac$\u000F\u000aA'\u0042\u0022\u005c\\\"\/",
+    "numbers": [1E30,4.50,6,2e-3,0.000000000000000000000000001]
+  }]]></artwork>
+          </figure>
+        </t>
+        <t>
+          Then a properly serialized output of the former would show
+          (with a line wrap between elements for display purposes only),
+          a rather divergent result with respect to data representation:
+        </t>
+        <t>
+          <figure align="center"><artwork><![CDATA[  {"escaping":"\u20ac$\u000f\nA'B\"\\\\\"/","numbers":
+  [1e+30,4.5,6,0.002,1e-27]}]]></artwork>
+          </figure>
+        </t>
+        <t>Note: \u20ac denotes the Euro character, which not being ASCII, is currently not displayable in RFCs.</t>
+        <t>
+          The ES6 JSON serializing rules can be summarized as:
           <list style="symbols">
             <t>
-              The original property serialization order MUST be preserved as
-              described by ECMAScript section 9.1.12.
+              The JSON Null and Boolean data types present no challenge since they already have a
+              fixed definition in <xref target="RFC8259"/>.
             </t>
             <t>
-              JSON data of the type <spanx style="verb">Number</spanx>, MUST be processed according to
-              ECMAScript section 7.1.12.1.
+              For JSON data of the type <spanx style="verb">String</spanx> (includes
+              propert names as well), each character MUST be serialized as 
+              described in ES <xref target="ES6" format="none">24.3.2.2</xref>:
+              <list style="empty">
+                <t>
+                  If the Unicode value falls within the traditional ASCII control
+                  character range (0x00-0x1f), it MUST
+                  be rewritten in lowercase hexadecimal notation (\uhhhh) unless it is one
+                  of the predefined JSON escapes (\" \\ \b \f \n \r \t) because
+                  the latter have precedence. If the Unicode value is outside of
+                  the ASCII control character range, it must emitted &quot;as&nbsp;is&quot;.
+                </t>
+              </list>
             </t>
             <t>
-              Property names MUST be unique.
-            </t>
-            <t>
-              Whitespace must be removed which in practical terms means removal
-              of all characters outside of quoted strings having a value of x09,
-              x0a, x0d or x20.
-            </t>
-            <t>
-              JSON '\/' escape sequences within quoted strings must be treated as
-              "degenerate" equivalents to '/' by rewriting them.
-            </t>
-            <t>
-              Unicode escape sequences (\uhhhh) within quoted strings must be
-              adjusted as follows: If the Unicode value falls within the
-              traditional ASCII control character range (0x00-0x1f and 0x7f), it must
-              be rewritten in lowercase hexadecimal notation unless it is one
-              of the predefined JSON escapes (\" \\ \b \f \n \r \t) because
-              the latter have precedence. If the Unicode value is outside of
-              the ASCII control character range, it must be replaced by the
-              corresponding Unicode character. See ECMAScript section 24.3.2.2.
+              JSON data of the type <spanx style="verb">Number</spanx>, MUST be serialized according to
+              ES6 section <xref target="ES6" format="none">7.1.12.1</xref>.
+              For maximum interoperability and correctness,
             </t>
           </list>
         </t>
         <t>
-          If these rules are applied to the example signature, it should result in
-          the following string
-          (with line wraps between elements for display purposes only):
-        </t>
-        <t>
-          <figure align="center">
-            <artwork>
-              <![CDATA[{"iss":"joe","exp":1300819380,
-"escapeMe":"\u20ac$\u000f\nA'B\"\\\\\"/",
-"numbers":[1e+30,4.5,6],"__cleartext_signature":
-{"alg":"ES256","kid":"example.com:p256"}}]]>
-            </artwork>
-          </figure>
-        </t>
-        <t>
-          Note: \u20ac denotes the Euro symbol which is a single character, currently not
-          displayable &quot;as is&quot; in RFCs.
-        </t>
-        <t>
-          <figure align="center">
-            <artwork><![CDATA[|=================================================================|
-| IEEE-754 Double  |   JSON Representation    |      Comment      |
-|=================================================================|
-| 0000000000000000 | 0                        |                   |
-|-----------------------------------------------------------------|
-| 8000000000000000 | 0                        | Minus zero        |
-|-----------------------------------------------------------------|
-| 0000000000000001 | 5e-324                   | Smallest positive |
-|-----------------------------------------------------------------|
-| 8000000000000001 | -5e-324                  | Smallest negative |
-|-----------------------------------------------------------------|
-| 7fefffffffffffff | 1.7976931348623157e+308  | Largest positive  |
-|-----------------------------------------------------------------|
-| ffefffffffffffff | -1.7976931348623157e+308 | Largest negative  |
-|-----------------------------------------------------------------|
-| 7fffffffffffffff |                          | Error (NaN)       |
-|-----------------------------------------------------------------|
-| 44b52d02c7e14af5 | 9.999999999999997e+22    |                   |
-|-----------------------------------------------------------------|
-| 44b52d02c7e14af6 | 1e+23                    |                   |
-|-----------------------------------------------------------------|
-| 44b52d02c7e14af7 | 1.0000000000000001e+23   |                   |
-|-----------------------------------------------------------------|
-| 444b1ae4d6e2ef4f | 999999999999999900000    |                   |
-|-----------------------------------------------------------------|
-| 444b1ae4d6e2ef50 | 1e+21                    |                   |
-|-----------------------------------------------------------------|
-| 444b1ae4d6e2ef51 | 1.0000000000000001e+21   |                   |
-|-----------------------------------------------------------------|
-| 41b3de4355555553 | 333333333.3333332        |                   |
-|-----------------------------------------------------------------|
-| 41b3de4355555554 | 333333333.33333325       |                   |
-|-----------------------------------------------------------------|
-| 41b3de4355555555 | 333333333.3333333        |                   |
-|-----------------------------------------------------------------|
-| 41b3de4355555556 | 333333333.3333334        |                   |
-|-----------------------------------------------------------------|
-| 41b3de4355555557 | 333333333.33333343       |                   |
-|-----------------------------------------------------------------|]]></artwork>
-          </figure>
-        </t>
-        <t>
           The final step is converting the textual output into an UTF-8 formatted array.
-          Applied to the sample this should yield the following bytes here shown in decimal notation:
+          Applied to the sample this should yield the following bytes here shown in hexadecimal notation:
         </t>
         <t>
-          123, 34, 105, 115, 115, 34, 58, 34, 106,
-          111, 101, 34, 44, 34, 101, 120, 112, 34,
-          58, 49, 51, 48, 48, 56, 49, 57, 51,
-          56, 48, 44, 34, 101, 115, 99, 97, 112,
-          101, 77, 101, 34, 58, 34, 226, 130, 172,
-          36, 92, 117, 48, 48, 48, 102, 92, 110,
-          65, 39, 66, 92, 34, 92, 92, 92, 92,
-          92, 34, 47, 34, 44, 34, 110, 117, 109,
-          98, 101, 114, 115, 34, 58, 91, 49, 101,
-          43, 51, 48, 44, 52, 46, 53, 44, 54,
-          93, 44, 34, 95, 95, 99, 108, 101, 97,
-          114, 116, 101, 120, 116, 95, 115, 105, 103,
-          110, 97, 116, 117, 114, 101, 34, 58, 123,
-          34, 97, 108, 103, 34, 58, 34, 69, 83,
-          50, 53, 54, 34, 44, 34, 107, 105, 100,
-          34, 58, 34, 101, 120, 97, 109, 112, 108,
-          101, 46, 99, 111, 109, 58, 112, 50, 53,
-          54, 34, 125, 125
+          <figure align="center">
+            <artwork><![CDATA[  7b 22 65 73 63 61 70 69 6e 67 22 3a 22 e2 82 ac 24 5c 75 30
+  30 30 66 5c 6e 41 27 42 5c 22 5c 5c 5c 5c 5c 22 2f 22 2c 22
+  6e 75 6d 62 65 72 73 22 3a 5b 31 65 2b 33 30 2c 34 2e 35 2c
+  36 2c 30 2e 30 30 32 2c 31 65 2d 32 37 5d 7d]]></artwork>
+          </figure>
+
+          
         </t>
       </section>
     </section>
@@ -372,7 +308,7 @@
       </t>
       <t>
         <figure align="center">
-          <artwork><![CDATA[    {"2":"First","A":"Second","1":"Third"}]]></artwork>
+          <artwork><![CDATA[  {"2":"First","A":"Second","1":"Third"}]]></artwork>
         </figure>
       </t>
       <t>
@@ -380,7 +316,7 @@
       </t>
       <t>
         <figure align="center">
-          <artwork><![CDATA[    {"1":"Third","2":"First","A":"Second"}]]></artwork>
+          <artwork><![CDATA[  {"1":"Third","2":"First","A":"Second"}]]></artwork>
         </figure>
       </t>
       <t>
@@ -418,10 +354,7 @@
     <references title="Normative References">
       <?rfc include='reference.RFC.2119'?>
       <?rfc include='reference.RFC.8259'?>
-      <?rfc include='reference.RFC.7515'?>
       <?rfc include='reference.RFC.4648'?>
-      <?rfc include='reference.RFC.7517'?>
-      <?rfc include='reference.RFC.7518'?>
       <?rfc include='reference.RFC.8174'?>
 
       <reference anchor="ES6" target="https://www.ecma-international.org/ecma-262/6.0/ECMA-262.pdf">
@@ -431,6 +364,15 @@
             <organization>Ecma International</organization>
           </author>
           <date/>
+        </front>
+      </reference>
+      <reference anchor="IEEE754" target="https://www.ecma-international.org/ecma-262/6.0/ECMA-262.pdf">
+        <front>
+          <title>IEEE Standard for Floating-Point Arithmetic</title>
+          <author>
+            <organization>IEEE</organization>
+          </author>
+          <date month="August" year="2008"/>
         </front>
       </reference>
       <reference anchor="UNICODE" target="https://www.unicode.org/versions/Unicode10.0.0/">
@@ -444,6 +386,7 @@
       </reference>
     </references>
     <references title="Informal References">
+      <?rfc include='reference.RFC.7515'?>
       <reference anchor="NODEJS" target="https://nodejs.org">
         <front>
           <title>Node.js</title>
@@ -469,162 +412,58 @@
       </reference>
     </references>
 
-    <section anchor="TestVectors" title="Test Vectors">
+    <section anchor="TestVectors" title="Sample Number Serializations">
       <t>
-        This section contains a set of test vectors sharing a common characteristic,
-        long lines are sliced in order to cope with RFC line length constraints.
+        The following table holds a set of ES6 <spanx style="verb">Number</spanx> serializations including
+        some edge cases.  The field  &quot;ES6&nbsp;Internal&quot; refers to the internal
+        ES6 representation of the <spanx style="verb">Number</spanx> data type which is based on the
+        IEEE-754 <xref target="IEEE754"/> standard using 64-bit precision values, here expressed in hexadecimal.
       </t>
-      <section anchor="multipleglobalalg" title="Multiple Signature with Global &quot;alg&quot; Header">
-        <t>
-          <figure align="center">
-            <artwork>
-              <![CDATA[{
-  "iss": "joe",
-  "exp": 1300819380,
-  "escapeMe": "\u20ac$\u000F\u000aA'\u0042\u0022\u005c\\\"\/",
-  "numbers": [1e+30,4.5,6],
-  "__cleartext_signature": {
-    "alg": "ES512",
-    "signers": [{
-      "kid": "example.com:p256",
-      "signature": "zjf2MzEesdIudTk0k9osa0um5ffzU-oM_8Z-mKHFmZxCRvpl4
-                    1lX2KUt5a742px_cTsG7sw-Kh8_xJuUMX97Kg"
-    },{
-      "kid": "example.com:p384",
-      "signature": "jTWnzmAcC34zOpTvvg7vuqLECUOqS6UMQcjwM24w7DwHz7nXQ
-                    e17eFYTjJWE-w_Nnw3sosYM6c6J9ABFOGoKx70cRPNQQ8WHfT
-                    zAyfTBxMBWtUR5PKWi5hJWUDeMnRS0"
-    }]
-  }
-}]]>
-            </artwork>
-          </figure>
-        </t>
-        <t>
-          The first signature can be verified using the key specified in <xref target="example.com:p256"/>,
-          while the second signature can be verified using the key specified in <xref target="example.com:p384"/>.
-        </t>
-      </section>
-      <section anchor="multipleglobalcrit" title="Multiple Signature with Global &quot;crit&quot; Header">
-        <t>
-          <figure align="center">
-            <artwork>
-              <![CDATA[{
-  "iss": "joe",
-  "exp": 1300819380,
-  "escapeMe": "\u20ac$\u000F\u000aA'\u0042\u0022\u005c\\\"\/",
-  "numbers": [1e+30,4.5,6],
-  "__cleartext_signature": {
-    "crit": ["otherExt","https://example.com/extension"],
-    "signers": [{
-      "alg": "ES256",
-      "kid": "example.com:p256",
-      "otherExt": "Other Data",
-      "signature": "S9PqQU5z5zThIGUvErzf7oo8EetiUFEI1v8flisWJzw0HqqY-
-                    OuT_pDq1rG4gsSRAFjrazurl4NGyyxcPfeXzw"
-    },{
-      "alg": "RS256",
-      "kid": "example.com:r2048",
-      "otherExt": "Cool Stuff",
-      "https://example.com/extension": {
-        "life-is-great": true
-      },
-      "signature": "O-cnYTtgvyGmgX1YMQkcnRE0lnBw1EduMNVpdblKP-Iy0S143
-                    BBvXrCQoEW9oTkQm7X9wkJoohWQyU4qvojoxQxmf6GQ0tEXEI
-                    HqN7ixkPh_3ySXTl-gKTPiA5UL-GV44AS-k6N71qp8XhLORmU
-                    m68UlTWBZaOXL0JTGjsCyGpuwNiAQbx39ZbjabvGq4NfpPIQC
-                    2yjx_SKoPMiia54Mp0hz8U_S3oyAmHrG2mKFYrJ7k43aeDHK1
-                    RNRu8XrW2w-Ffh4KigpClAq4q272ZSsjizfYPPjW3gqInjMZz
-                    Qd8yZj5Bi5vCDcBOEKZMDoog-UzIy8SbZNl85TlkhK70oNRQ"
-    }]
-  }
-}]]>
-            </artwork>
-          </figure>
-        </t>
-        <t>
-          The first signature can be verified using the key specified in <xref target="example.com:p256"/>,
-          while the second signature can be verified using the key specified in <xref target="example.com:r2048"/>.
-        </t>
-      </section>
-      <section anchor="example.com:p256" title="EC Key &quot;example.com:p256&quot;">
-        <t>EC private key, here expressed in JWK notation:</t>
-        <t>
-          <figure align="center">
-            <artwork>
-              <![CDATA[{
-  "kid": "example.com:p256",
-  "kty": "EC",
-  "crv": "P-256",
-  "x": "censDzcMEkgiePz6DXB7cDuwFemshAFR90UNVQFCg8Q",
-  "y": "xq8rze6ewG0-eVcSF72J77gKiD0IHnzpwHaU7t6nVeY",
-  "d": "nEsftLbi5u9pI8B0-drEjIuJzQgZie3yeqUR3BwWDl4"
-}]]>
-            </artwork>
-          </figure>
-        </t>
-      </section>
-      <section anchor="example.com:p384" title="EC Key &quot;example.com:p384&quot;">
-        <t>EC private key, here expressed in JWK notation:</t>
-        <t>
-          <figure align="center">
-            <artwork>
-              <![CDATA[{
-  "kid": "example.com:p384",
-  "kty": "EC",
-  "crv": "P-384",
-  "x": "GLfdsvEwphRzS_twup7UFPVOk7_CKgHZ7dt_fJ2QHPBdJa1c5pfJcRIWTfT0l
-        pg9",
-  "y": "ovA5_QXmFbj9U4pjZ1AX_ZdVyIRZUBWW9cuZda_tupKfWQfmcQHzDmHGHbxl9
-        Xxl",
-  "d": "Qsgq80kMs40sAn1gB7gLxAk1se37Kmh9AG18wWZ3SqgcPPRq1wwidNTi866Gt
-        4_0"
-}]]>
-            </artwork>
-          </figure>
-        </t>
-      </section>
-      <section anchor="example.com:r2048" title="RSA Key &quot;example.com:r2048&quot;">
-        <t>RSA private key, here expressed in JWK notation:</t>
-        <t>
-          <figure align="center">
-            <artwork>
-              <![CDATA[{
-  "kid": "example.com:r2048",
-  "kty": "RSA",
-  "n": "hFWEXArvaZEpSP5qNX7x4C4Hl28GJQTNvnDwkfqiWs63kXbdyPeS06bz6GnY3
-        tfQ_093nGauWsimqKBmGAGMPtsV83Qxw1OIeO4ujbIIb9pema0qtVqs0MWlHx
-        klZGFkYfAmbuEUFxYDeLDHe0bkkXbSlB7_t8pCSvc8HLgHjEQjYOlFRwjR0D-
-        uLo-xgsCbpmCtYkB5lcT_zFgpRgY4zJNLSv7GZiz2S4Fc5ArGjd34lL47-L8b
-        ozuYjqNOv9sqX0Zgll5XaJ1ndvr7UqZu1xQFgm38reoM3IarBP_SkEFbt_v9i
-        ak602VO3k28fQhMaocP7JWR2YLT3kZM0-WTFw",
-  "e": "AQAB",
-  "d": "Q6iBYpnIrB2mkQZagP1lZuvBv9_osVaSZpLRvKD7DxhvbDTs0coaTJIoVCSB1
-        _VZip8zlUg-TnYWF1Liv9VSwfQ7ddxrcOUtej60mId0ntNz2HhbxJsWjiru8E
-        ZoArl0nEovLDNxlRgRMEyZwOKPC_xHT6nFrk7_s9pR5pEEcubGLAVBKnLCoPd
-        Lr-CBjCvWfJo73W5AZxoSb8MdWQOi5viXHURpr1Y_uBRsMuclovM56Vt05etM
-        sB1AbcTLUDwAuYrZWa1c08ql60ft7b3v6Q_rCL7EHtFU3PHAuP0mV7tM5BfAP
-        f4T0g9pbr4GOw7eqQCiYgPFE7gmCR_PDxv5YQ",
-  "p": "6DIM343hAtj1hQprJaVQ3T8YeIytIQ7Ma544C0A8BX-irjJfARy4fAlTSyBFe
-        auZ0WdbMGtKpAIgNVmfCfuP7W1bXw7UaxpqsQlbw54K1VtBs8xG-lee_2YQ3l
-        UlIiC1at6L0jxWYNkvp-LIfU2F5ZQir5ZWVXwgdMcgoNBABMc",
-  "q": "keacq0goV7pAtG2h33OAk-XOSclIF1agvEMMOKuud5V-vGQ6OaYldlYqZmSGg
-        F7RVlX0GZO70nPqatjd2G-tI8wEq5K_xmLQurUPFW8g___z0CTgJ62KbjFxCt
-        Gny5rsObX9im6cCc_EOtWZRaApzO8ykxfo1QcEjT4k1na7DzE",
-  "dp": "nPmJPnFal2Q5x_GdMlwq6QhI8OaZ_OlWRcM3PFP2v_jj8ERZehUCm8hqKTXu
-         Ai2C1dC8E2XVlj9hqu-l10fcq7Tsurz52laHnpwnD35-8HK7XmRR79jgwuUr
-         rkN90S6vt0ow2La15s-tqiBlTmDkjqqxMGfAghZiktA0PMPNI-0",
-  "dq": "D3c1lkZw2FPK9hVE-m3A7GyIwHOQq8CoCyzER-GS_eQf6hJpxaCiCfg6SF5R
-         j5v9brxvwqJRX46gA7F3WrED1m6S9Cj7ISlqXNBCiBAenGRiUOcHx8zyhpnB
-         FNeChOeoMLnk5V6yNawLbf0kYSgIJkwYvVTkfmhfCCXVO9KcI5E",
-  "qi": "wV0NzfCakfog1NFjtPzcga1MtkpizgPkxcP9LjNdvXW2YQZhM6GIEGjsu3iv
-         TrHrrM-4_bTQHOoTtfIY7wdqBKlwQTJOI0dH9FbNJ4ecGojRwgv83TN8aNKh
-         17Tt44jI5oibs2P-31B_VW9R1wwhnnOuCYpABfoSbtHIoCRme5I"
-}]]>
-            </artwork>
-          </figure>
-        </t>
-      </section>
-    </section>
+      <t>
+        <figure align="center">
+          <artwork><![CDATA[|=================================================================|
+|   ES6 Internal   |   JSON Representation    |      Comment      |
+|=================================================================|
+| 0000000000000000 | 0                        |                   |
+|-----------------------------------------------------------------|
+| 8000000000000000 | 0                        | Minus zero        |
+|-----------------------------------------------------------------|
+| 0000000000000001 | 5e-324                   | Smallest positive |
+|-----------------------------------------------------------------|
+| 8000000000000001 | -5e-324                  | Smallest negative |
+|-----------------------------------------------------------------|
+| 7fefffffffffffff | 1.7976931348623157e+308  | Largest positive  |
+|-----------------------------------------------------------------|
+| ffefffffffffffff | -1.7976931348623157e+308 | Largest negative  |
+|-----------------------------------------------------------------|
+| 7fffffffffffffff |                          | Error (NaN)       |
+|-----------------------------------------------------------------|
+| 44b52d02c7e14af5 | 9.999999999999997e+22    |                   |
+|-----------------------------------------------------------------|
+| 44b52d02c7e14af6 | 1e+23                    |                   |
+|-----------------------------------------------------------------|
+| 44b52d02c7e14af7 | 1.0000000000000001e+23   |                   |
+|-----------------------------------------------------------------|
+| 444b1ae4d6e2ef4e | 999999999999999700000    |                   |
+|-----------------------------------------------------------------|
+| 444b1ae4d6e2ef4f | 999999999999999900000    |                   |
+|-----------------------------------------------------------------|
+| 444b1ae4d6e2ef50 | 1e+21                    |                   |
+|-----------------------------------------------------------------|
+| 444b1ae4d6e2ef51 | 1.0000000000000001e+21   |                   |
+|-----------------------------------------------------------------|
+| 41b3de4355555553 | 333333333.3333332        |                   |
+|-----------------------------------------------------------------|
+| 41b3de4355555554 | 333333333.33333325       |                   |
+|-----------------------------------------------------------------|
+| 41b3de4355555555 | 333333333.3333333        |                   |
+|-----------------------------------------------------------------|
+| 41b3de4355555556 | 333333333.3333334        |                   |
+|-----------------------------------------------------------------|
+| 41b3de4355555557 | 333333333.33333343       |                   |
+|-----------------------------------------------------------------|]]></artwork>
+        </figure>
+      </t>
+     </section>
   </back>
 </rfc>
