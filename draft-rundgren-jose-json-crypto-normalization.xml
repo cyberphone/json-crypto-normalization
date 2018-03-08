@@ -11,286 +11,341 @@
 <?rfc subcompact="no" ?>
 
 <rfc category="info" docName="draft-rundgren-jose-json-crypto-normalization-00" ipr="trust200902">
- <front>
-   <title abbrev="draft-rundgren-jose-json-crypto-normalization">
-     JSON Crypto Normalization (JCN)
-   </title>
+  <front>
+    <title abbrev="draft-rundgren-jose-json-crypto-normalization">
+      JSON Crypto Normalization (JCN)
+    </title>
 
-   <author fullname="Anders Rundgren" initials="A." surname="Rundgren">
-     <organization>Independent</organization>
-     <address>
-       <postal>
-         <street></street>
-         <code></code> <city>Montpellier</city>
-         <country>France</country>
-       </postal>
-       <email>anders.rundgren.net@gmail.com</email>
-     </address>
-   </author>
+    <author fullname="Anders Rundgren" initials="A." surname="Rundgren">
+      <organization>Independent</organization>
+      <address>
+        <postal>
+          <street></street>
+          <code></code>
+          <city>Montpellier</city>
+          <country>France</country>
+        </postal>
+        <email>anders.rundgren.net@gmail.com</email>
+      </address>
+    </author>
 
-   <date year="2018" />
+    <date year="2018" />
 
-   <area>Security</area>
+    <area>Security</area>
 
-   <workgroup>JSON Object Signing and Encryption (JOSE)</workgroup>
+    <workgroup>JSON Object Signing and Encryption (JOSE)</workgroup>
 
-   <keyword>
-     JOSE, JSON, EcmaScript, Canonicalization
-   </keyword>
+    <keyword>
+      JOSE, JSON, ECMAScript, Signatures, Cryptography, Canonicalization
+    </keyword>
 
-   <abstract>
-     <t>
-       Cryprographic operations like hashing and signing depend on that the
-       target data does not change during serialization, transport, or parsing.
-       By applying the JCN (JSON Crypto Normalization) scheme, data provided in the
-       JSON <xref target="RFC8259"/> format can be used &quot;as is&quot;,
-       while still being suitable for cryptograpgic operations.
-       JCN achieves this by exploiting the strict predictability
-       offered by the JSON parsing and serialization methods defined in
-       ECMAScript version 6 <xref target="ES6"/>.
-     </t>
-     <t>
-       The intended users of this specification are JSON tool vendors who may need
-       updating their products in order to support emerging schemes building on ECMAScript
-       JSON processing rules.  The latter also have utility outside of cryptography.
-     </t>
-   </abstract>
- </front>
-
-<middle>
-  <section anchor="Introduction" title="Introduction">
-    <t>
-      Cryptographic operations like hashing and signing depend on that the
-      target data does not change during serialization, transport, or parsing.
-      A straightforward way of accomplishing this is converting the data into
-      a format which has a simple and fix representation like Base64Url <xref target="RFC4648"/>
-      which for example have been used in JWS <xref target="RFC7518"/>.
-      Another solution is creating a canonicalized version of the target data
-      with XML Signature <xref target="XMLDSIG"/> as a prime example.
-      </t>
-    <t>
-      Although the mentioned approaches obviously work, the ability
-      applying cryptographic operations on JSON data (without encoding it
-      in Base64Url or having to rely on standalone canonicalizers) became
-      fully realistic with the advent of ECMAScript (aka JavaScript) version 6.
-    </t>
-    <t>
-      Realistic in this context means &quot;available&quot; since ECMAScript
-      compatible JSON processing is already supported by most Web browsers,
-      Node.js <xref target="NODEJS"/>,
-      as well as in third party libaries like Open&nbsp;Keystore <xref target="OPENKEY"/>. 
-    </t>
-    <t>
-        The JCN specification describes how ECMAscript's JSON processing
-        rules can be used for supporting &quot;Crypto Safe&quot; JSON.
-    </t>
-  </section>
-
-  <section title="Terminology">
-    <t>
-      The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
-      NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED",
-      "MAY", and "OPTIONAL" in this document are to be interpreted as
-      described in BCP 14 <xref target="RFC2119"/> <xref target="RFC8174"/>
-      when, and only when, they appear in all capitals, as shown here.
-    </t>
-  </section>
-
-  <section title="Operation">
-    <t>
-      This section outlines the core issues facing designers of &quot;Crypto Safe&quot;
-      JSON and how they are addressed by ECMAScript.
-    </t>
-    <section title="Core JSON Processing">
+    <abstract>
       <t>
-        When parsing JSON string data the following MUST be taken in account:
+        Cryprographic operations like hashing and signing depend on that the
+        target data does not change during serialization, transport, or parsing.
+        By applying the JCN (JSON Crypto Normalization) scheme, data provided in the
+        JSON <xref target="RFC8259"/> format can be used &quot;as is&quot;,
+        while still being suitable for cryptograpgic operations.
+        JCN achieves this by exploiting the strict predictability
+        offered by the JSON parsing and serialization methods defined in
+        ECMAScript beginning with version 6 <xref target="ES6"/>.
       </t>
       <t>
-        <list style="symbols">
-          <t>
-            The input data MUST conform to JSON as specified in <xref target="RFC8259"/>.
-            Note: ECMAScript's <spanx style="verb">JSON.parse()</spanx> requires
-            externally supplied UTF-8 <xref target="UNICODE"/> encoded data to be
-            converted to the internal ECMAScript string format before processing.
-          </t>
-          <t>
-            The property names within a JSON object MUST be unique.  Note: this is
-            currently not checked by ECMAScript compatible parsers.
-          </t>
-          <t>
-            Whitespace MUST be removed which in practical terms means removal
-            of all characters outside of quoted strings having a value of x09,
-            x0a, x0d or x20.
-          </t>
-          <t>
-            All JSON escape sequences (\/ \&quot; \\ \b \f \n \r \t \uhhhh) within quoted strings
-            MUST be converted to their proper single character internal representation.
-          </t>
-        </list>
+        The intended audience of this document is JSON tool vendors who
+        may need updating their products in order to support schemes like
+        Cleartext JSON Web Signature (JWS),
+        building on ECMAScript <xref target="ES6"/> JSON processing rules.
+        The latter also have utility outside of cryptography.
+      </t>
+    </abstract>
+  </front>
+
+  <middle>
+    <section anchor="Introduction" title="Introduction">
+      <t>
+        Cryptographic operations like hashing and signing depend on that the
+        target data does not change during serialization, transport, or parsing.
+        A straightforward way of accomplishing this is converting the data into
+        a format which has a simple and fix representation like Base64Url <xref target="RFC4648"/>
+        which for example have been used in JWS <xref target="RFC7518"/>.
+        Another solution is creating a canonicalized version of the target data
+        with XML Signature <xref target="XMLDSIG"/> as a prime example.
+      </t>
+      <t>
+        Although the mentioned approaches obviously work, the ability
+        applying cryptographic operations on JSON data (without encoding it
+        in Base64Url or having to rely on standalone canonicalizers) became
+        fully realistic with the advent of ECMAScript (aka JavaScript) version 6
+        from now on referred to as "ES6".
+      </t>
+      <t>
+        Realistic in this context means &quot;available&quot; since ES6
+        compatible JSON processing is already supported by most Web browsers,
+        Node.js <xref target="NODEJS"/>,
+        as well as by third party libaries like Open&nbsp;Keystore <xref target="OPENKEY"/>.
+      </t>
+      <t>
+        The JCN specification describes how JSON processing rules compliant
+        with ES6, can be used for supporting &quot;Crypto&nbsp;Safe&quot; JSON.
       </t>
     </section>
-    <section title="Preserving JSON Property Order">
-      <t>
-        It is common knowledge that the order of properties in JSON is insignificant.
-      </t>
-      <t>
-        However, this is not equivalent with disrespecting the order in which properties
-        are supplied in JSON data during parsing or serialization.
-        It is obvious that if you create a JSON object like
-      </t>
-      <t>
-        <figure align="center">
-          <artwork><![CDATA[    {
-      "Name": "John Doe",
-      "Address": "2000 Sunset Boulevard",
-      "City": "Los Angeles",
-      "Zip": "90001",
-      "State": "CA"
-    }]]></artwork>
-        </figure>
-      </t>
-      <t>
-        and it would serialize like
-      </t>
-      <t>
-        <figure align="center">
-          <artwork><![CDATA[    {
-      "Zip": "90001",
-      "Address": "2000 Sunset Boulevard",
-      "City": "Los Angeles",
-      "Name": "John Doe",
-      "State": "CA"
-    }]]></artwork>
-        </figure>
-      </t>
-      <t>
-        the result would not only possibly surprise the developer; it would completely break a signature.
-      </t>
-      <t>
-        ECMAScript does with a minor exception described in <xref target="ES6Interoperability"/>,
-        maintain an internal &quot;Creation Order&quot; of properties which applies to the
-        following (for JCN) core operations:
-      </t>
-      <t>
-        <list style="symbols">
-          <t>
-            Creation of JSON object:
-            <list style="empty">
-              <t>obj = {}</t>
-            </list>
-          </t>
-          <t>
-            Parsing of JSON string data:
-            <list style="empty">
-              <t>obj = JSON.parse('...')</t>
-            </list>
-          </t>
-          <t>
-            Serialization to JSON string:
-            <list style="empty">
-              <t>... = JSON.stringify(obj)</t>
-            </list>
-          </t>
-          <t>
-            Cloning of JSON object:
-            <list style="empty">
-              <t>... = Object.assign({}, obj)</t>
-            </list>
-          </t>
-          <t>
-            Deletion of JSON property:
-            <list style="empty">
-              <t>delete obj.property</t>
-            </list>
-          </t>
-          <t>
-            Addition of JSON property:
-            <list style="empty">
-              <t>obj.property = ...</t>
-            </list>
-          </t>
-        </list>
-      </t>
-      <t>
-        Although the above is specified here using ECMAScript, a JCN compliant JSON tool kit
-        for another platform MUST be able providing the same functionality.
-      </t>
-    </section>
-    <section title="JSON Data Normalization">
-      <t>
-        In order to TBD
-      </t>
-    </section>
-  </section>
 
-    <section anchor="Serialization" title="Serialization and Normalization">
+    <section anchor="Terminology" title="Terminology">
       <t>
-        When having header parameters in cleartext serialization of them needs to be
-        consistent across platforms. JSON <xref target="RFC8259" /> by itself does not produce
-        predictable serialization of data. However, ES6 <xref target="ES6"/> defines how to produce
-        JSON that is predictable. By following the ES6 serialization directives,
-        one gets predictable results, i.e., the JSON serializer MUST follow the
-        directives set out by ES6 when serializing data. The rules defined below
-        take the essence from the ES6 specification and list what that means
-        in practical terms.
+        The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
+        NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED",
+        "MAY", and "OPTIONAL" in this document are to be interpreted as
+        described in BCP 14 <xref target="RFC2119"/> <xref target="RFC8174"/>
+        when, and only when, they appear in all capitals, as shown here.
       </t>
+    </section>
+
+    <section anchor="Operation" title="Operation">
       <t>
-        Rules for serialization:
-        <list style="symbols">
-          <t>
-            The original property serialization order MUST be preserved as
-            described by ECMAScript section 9.1.12.
-          </t>
-          <t>
-            JSON data of the type <spanx style="verb">Number</spanx>, MUST be processed according to
-            ECMAScript section 7.1.12.1.
-          </t>
-          <t>
-            Property names MUST be unique.
-          </t>
-          <t>
-            Whitespace must be removed which in practical terms means removal
-            of all characters outside of quoted strings having a value of x09,
-            x0a, x0d or x20.
-          </t>
-          <t>
-            JSON '\/' escape sequences within quoted strings must be treated as
-            "degenerate" equivalents to '/' by rewriting them.
-          </t>
-          <t>
-            Unicode escape sequences (\uhhhh) within quoted strings must be
-            adjusted as follows: If the Unicode value falls within the
-            traditional ASCII control character range (0x00-0x1f and 0x7f), it must
-            be rewritten in lowercase hexadecimal notation unless it is one
-            of the predefined JSON escapes (\" \\ \b \f \n \r \t) because
-            the latter have precedence. If the Unicode value is outside of
-            the ASCII control character range, it must be replaced by the
-            corresponding Unicode character. See ECMAScript section 24.3.2.2.
-          </t>
-        </list>
+        This section elaborates on the different issues related to &quot;Crypto&nbsp;Safe&quot;
+        JSON and how they are addressed by ES6.
       </t>
-      <t>
-        If these rules are applied to the example signature, it should result in
-        the following string
-        (with line wraps between elements for display purposes only):
+      <section anchor="parsing" title="Basic JSON Parsing">
+        <t>
+          When parsing JSON string data the following MUST be taken in account:
         </t>
-      <t>
-        <figure align="center">
-          <artwork>
-<![CDATA[{"iss":"joe","exp":1300819380,
+        <t>
+          <list style="symbols">
+            <t>
+              The input data MUST conform to JSON as specified in <xref target="RFC8259"/>.
+              Note: ES6 requires that data encoded as UTF-8 <xref target="UNICODE"/>,
+              is converted to the ES6 string format, in order to make it processable
+              by the ES6 <spanx style="verb">JSON.parse()</spanx> method.
+            </t>
+            <t>
+              The property names within a JSON object MUST be unique.  Note: this is
+              currently not checked by ES6 compatible parsers.
+            </t>
+            <t>
+              Whitespace MUST be removed which in practical terms means removal
+              of all characters outside of quoted strings having a value of x09,
+              x0a, x0d or x20.  This is the de-facto standard for JSON parsers,
+              indirectly derived from the JSON <xref target="RFC8259"/> specification
+              itself.
+            </t>
+            <t>
+              All JSON escape sequences (\/ \&quot; \\ \b \f \n \r \t \uhhhh) within quoted strings
+              MUST be converted to their proper single character internal representation.
+              ES6 defines this behavior in Section 11.8.4.
+            </t>
+          </list>
+        </t>
+      </section>
+      <section anchor="json.proporder" title="Preserving JSON Property Order">
+        <t>
+          It is common knowledge that the order of properties in JSON is insignificant.
+        </t>
+        <t>
+          However, this is not equivalent with disrespecting the order in which properties
+          are supplied in JSON data during parsing or serialization.
+          It is obvious that if you parse (or create) a JSON object like
+        </t>
+        <t>
+          <figure align="center">
+            <artwork><![CDATA[    {
+      "Name": "John Doe",
+      "Address": "2000 Sunset Boulevard",
+      "City": "Los Angeles",
+      "Zip": "90001",
+      "State": "CA"
+    }]]></artwork>
+          </figure>
+        </t>
+        <t>
+          and it would serialize like
+        </t>
+        <t>
+          <figure align="center">
+            <artwork><![CDATA[    {
+      "Zip": "90001",
+      "Address": "2000 Sunset Boulevard",
+      "City": "Los Angeles",
+      "Name": "John Doe",
+      "State": "CA"
+    }]]></artwork>
+          </figure>
+        </t>
+        <t>
+          the result would not only possibly surprise the developer; it would break a signature
+          depending on an immutable representation of JSON data.
+        </t>
+        <t>
+          ES6 does with a minor exception described in <xref target="es6.interoperability"/>,
+          maintain an internal &quot;Creation Order&quot; of properties, per Section 9.1.12 of ES6.
+          This applies to the following JCN core operations:
+        </t>
+        <t>
+          <list style="symbols">
+            <t>
+              Creation of empty JSON object:
+              <list style="empty">
+                <t>obj = {}</t>
+              </list>
+            </t>
+            <t>
+              Parsing of JSON string data to JSON object:
+              <list style="empty">
+                <t>obj = JSON.parse('...')</t>
+              </list>
+            </t>
+            <t>
+              Serialization of JSON object to JSON string:
+              <list style="empty">
+                <t>... = JSON.stringify(obj)</t>
+              </list>
+            </t>
+            <t>
+              Shallow cloning of JSON object:
+              <list style="empty">
+                <t>... = Object.assign({}, obj)</t>
+              </list>
+            </t>
+            <t>
+              Deep cloning of JSON object:
+              <list style="empty">
+                <t>... = JSON.parse(JSON.stringify(obj))</t>
+              </list>
+            </t>
+            <t>
+              Deletion of JSON property:
+              <list style="empty">
+                <t>delete obj.property</t>
+              </list>
+            </t>
+            <t>
+              Addition of JSON property:
+              <list style="empty">
+                <t>obj.property = ...</t>
+              </list>
+            </t>
+          </list>
+        </t>
+        <t>
+          Although the above is specified in ES6 notation, a JCN compliant JSON tool kit
+          for another platform MUST be able providing the same functionality.
+        </t>
+      </section>
+      <section anchor="Serialization" title="JSON Serialization">
+        <t>
+          When having header parameters in cleartext serialization of them needs to be
+          consistent across platforms. JSON <xref target="RFC8259" /> by itself does not produce
+          predictable serialization of data. However, ES6 <xref target="ES6"/> defines how to produce
+          JSON that is predictable. By following the ES6 serialization directives,
+          one gets predictable results, i.e., the JSON serializer MUST follow the
+          directives set out by ES6 when serializing data. The rules defined below
+          take the essence from the ES6 specification and list what that means
+          in practical terms.
+        </t>
+        <t>
+          Rules for serialization:
+          <list style="symbols">
+            <t>
+              The original property serialization order MUST be preserved as
+              described by ECMAScript section 9.1.12.
+            </t>
+            <t>
+              JSON data of the type <spanx style="verb">Number</spanx>, MUST be processed according to
+              ECMAScript section 7.1.12.1.
+            </t>
+            <t>
+              Property names MUST be unique.
+            </t>
+            <t>
+              Whitespace must be removed which in practical terms means removal
+              of all characters outside of quoted strings having a value of x09,
+              x0a, x0d or x20.
+            </t>
+            <t>
+              JSON '\/' escape sequences within quoted strings must be treated as
+              "degenerate" equivalents to '/' by rewriting them.
+            </t>
+            <t>
+              Unicode escape sequences (\uhhhh) within quoted strings must be
+              adjusted as follows: If the Unicode value falls within the
+              traditional ASCII control character range (0x00-0x1f and 0x7f), it must
+              be rewritten in lowercase hexadecimal notation unless it is one
+              of the predefined JSON escapes (\" \\ \b \f \n \r \t) because
+              the latter have precedence. If the Unicode value is outside of
+              the ASCII control character range, it must be replaced by the
+              corresponding Unicode character. See ECMAScript section 24.3.2.2.
+            </t>
+          </list>
+        </t>
+        <t>
+          If these rules are applied to the example signature, it should result in
+          the following string
+          (with line wraps between elements for display purposes only):
+        </t>
+        <t>
+          <figure align="center">
+            <artwork>
+              <![CDATA[{"iss":"joe","exp":1300819380,
 "escapeMe":"\u20ac$\u000f\nA'B\"\\\\\"/",
 "numbers":[1e+30,4.5,6],"__cleartext_signature":
-{"alg":"ES256","kid":"example.com:p256"}}]]></artwork>
-        </figure>
-      </t>
-      <t>Note: \u20ac denotes the Euro symbol which is a single character, currently not
-      displayable &quot;as is&quot; in RFCs.</t>
-      <t>
-        The final step is converting the textual output into an UTF-8 formatted array.
-        Applied to the sample this should yield the following bytes here shown in decimal notation:
+{"alg":"ES256","kid":"example.com:p256"}}]]>
+            </artwork>
+          </figure>
         </t>
-      <t>
-           123, 34, 105, 115, 115, 34, 58, 34, 106,
+        <t>
+          Note: \u20ac denotes the Euro symbol which is a single character, currently not
+          displayable &quot;as is&quot; in RFCs.
+        </t>
+        <t>
+          <figure align="center">
+            <artwork>
+              <![CDATA[|=================================================================|
+| IEEE-754 Double  |   JSON Representation    |      Comment      |
+|=================================================================|
+| 0000000000000000 | 0                        |                   |
+|-----------------------------------------------------------------|
+| 8000000000000000 | 0                        | Minus zero        |
+|-----------------------------------------------------------------|
+| 0000000000000001 | 5e-324                   | Smallest positive |
+|-----------------------------------------------------------------|
+| 8000000000000001 | -5e-324                  | Smallest negative |
+|-----------------------------------------------------------------|
+| 7fefffffffffffff | 1.7976931348623157e+308  | Largest positive  |
+|-----------------------------------------------------------------|
+| ffefffffffffffff | -1.7976931348623157e+308 | Largest negative  |
+|-----------------------------------------------------------------|
+| 7fffffffffffffff |                          | Error (NaN)       |
+|-----------------------------------------------------------------|
+| 44b52d02c7e14af5 | 9.999999999999997e+22    |                   |
+|-----------------------------------------------------------------|
+| 44b52d02c7e14af6 | 1e+23                    |                   |
+|-----------------------------------------------------------------|
+| 44b52d02c7e14af7 | 1.0000000000000001e+23   |                   |
+|-----------------------------------------------------------------|
+| 444b1ae4d6e2ef4f | 999999999999999900000    |                   |
+|-----------------------------------------------------------------|
+| 444b1ae4d6e2ef50 | 1e+21                    |                   |
+|-----------------------------------------------------------------|
+| 444b1ae4d6e2ef51 | 1.0000000000000001e+21   |                   |
+|-----------------------------------------------------------------|
+| 41b3de4355555553 | 333333333.3333332        |                   |
+|-----------------------------------------------------------------|
+| 41b3de4355555554 | 333333333.33333325       |                   |
+|-----------------------------------------------------------------|
+| 41b3de4355555555 | 333333333.3333333        |                   |
+|-----------------------------------------------------------------|
+| 41b3de4355555556 | 333333333.3333334        |                   |
+|-----------------------------------------------------------------|
+| 41b3de4355555557 | 333333333.33333343       |                   |
+|-----------------------------------------------------------------|]]>
+            </artwork>
+          </figure>
+        </t>
+        <t>
+          The final step is converting the textual output into an UTF-8 formatted array.
+          Applied to the sample this should yield the following bytes here shown in decimal notation:
+        </t>
+        <t>
+          123, 34, 105, 115, 115, 34, 58, 34, 106,
           111, 101, 34, 44, 34, 101, 120, 112, 34,
           58, 49, 51, 48, 48, 56, 49, 57, 51,
           56, 48, 44, 34, 101, 115, 99, 97, 112,
@@ -308,104 +363,124 @@
           34, 58, 34, 101, 120, 97, 109, 112, 108,
           101, 46, 99, 111, 109, 58, 112, 50, 53,
           54, 34, 125, 125
-      </t>
-      <section anchor="ES6Interoperability" title="ES6+ Interoperability">
-        <t>
-          For JavaScript optimization reasons, ES6+'s JSON.parse() internally
-          rearranges the order of properties with names expressed as integers, making a
-          parsed JSON string like '{"2":"First", "A":"Second","1":"Third"}' actually serialize as
-          '{"1":"Third","2":"First","A":"Second"}'. Due to this fact, signature creators MUST
-          "emulate" this scheme since this behavior is not
-          intended to be an additional requirement to support by JSON tools in
-          general in order to use this specification.   The easiest way
-          accomplishing this is to programmatically make sure that possible
-          numeric property names always are created first and added in ascending
-          order.
         </t>
       </section>
     </section>
+    <section anchor="es6.interoperability" title="ES6 Interoperability">
+      <t>
+        For execution speed optimization reasons, ES6 internally rearranges
+        the order of properties with names expressed as integers, making a
+        parsed JSON string like
+      </t>
+      <t>
+        <figure align="center">
+          <artwork><![CDATA[    {"2":"First","A":"Second","1":"Third"}]]></artwork>
+        </figure>
+      </t>
+      <t>
+        actually serialize as
+      </t>
+      <t>
+        <figure align="center">
+          <artwork><![CDATA[    {"1":"Third","2":"First","A":"Second"}]]></artwork>
+        </figure>
+      </t>
+      <t>
+        which is in conflict with the requirements specified in <xref target="json.proporder"/>.
+        Due to this fact, signature creators MUST
+        "emulate" this scheme since this behavior is not
+        intended to be an additional requirement to support by JSON tools in
+        general in order to use this specification.   The easiest way
+        accomplishing this is to programmatically make sure that possible
+        numeric property names always are created first and added in ascending
+        order.
+      </t>
+    </section>
 
-  <section anchor="IANA" title="IANA Considerations">
-    <t>TDB</t>
-  </section>
+    <section anchor="IANA" title="IANA Considerations">
+      <t>TDB</t>
+    </section>
 
-  <section anchor="Security" title="Security Considerations">
-    <t>
-TDB
-</t>
-  </section>
+    <section anchor="Security" title="Security Considerations">
+      <t>
+        TDB
+      </t>
+    </section>
 
-  <section anchor="Acknowledgements" title="Acknowledgements">
-    <t>
-      Building on ES6 number normalization was originally
-      proposed by James Manger. This ultimately led to
-      the adoption of the entire ES6 JSON processing model.
-    </t>
-  </section>
- </middle>
+    <section anchor="Acknowledgements" title="Acknowledgements">
+      <t>
+        Building on ES6 number normalization was originally
+        proposed by James Manger. This ultimately led to
+        the adoption of the entire ES6 JSON processing model.
+      </t>
+    </section>
+  </middle>
 
- <back>
-   <references title="Normative References">
-     <?rfc include='reference.RFC.2119'?>
-     <?rfc include='reference.RFC.8259'?>
-     <?rfc include='reference.RFC.7515'?>
-     <?rfc include='reference.RFC.4648'?>
-     <?rfc include='reference.RFC.7517'?>
-     <?rfc include='reference.RFC.7518'?>
-     <?rfc include='reference.RFC.8174'?>
+  <back>
+    <references title="Normative References">
+      <?rfc include='reference.RFC.2119'?>
+      <?rfc include='reference.RFC.8259'?>
+      <?rfc include='reference.RFC.7515'?>
+      <?rfc include='reference.RFC.4648'?>
+      <?rfc include='reference.RFC.7517'?>
+      <?rfc include='reference.RFC.7518'?>
+      <?rfc include='reference.RFC.8174'?>
 
-     <reference anchor="ES6" target="https://www.ecma-international.org/ecma-262/6.0/ECMA-262.pdf">
-       <front>
-         <title>ECMAScript 2015 Language Specification</title>
-         <author>
-           <organization>Ecma International</organization>
-         </author>
-         <date/>
-       </front>
-     </reference>
-     <reference anchor="UNICODE" target="https://www.unicode.org/versions/Unicode10.0.0/">
-       <front>
-         <title>The Unicode Standard, Version 10.0.0</title>
-         <author>
-           <organization>The Unicode Consortium</organization>
-         </author>
-         <date/>
-       </front>
-     </reference>
-   </references>
-   <references title="Informal References">
-     <reference anchor="NODEJS" target="https://nodejs.org">
-       <front>
-         <title>Node.js</title>
-         <author/>
-         <date/>
-       </front>
-     </reference>
-     <reference anchor="OPENKEY" target="https://github.com/cyberphone/openkeystore">
-       <front>
-         <title>Open Keystore</title>
-         <author/>
-         <date/>
-       </front>
-     </reference>
-     <reference anchor="XMLDSIG" target="https://www.w3.org/TR/xmldsig-core1/">
-       <front>
-         <title>XML Signature Syntax and Processing Version 1.1</title>
-         <author>
-           <organization>W3C</organization>
-         </author>
-         <date/>
-       </front>
-     </reference>
-   </references>
+      <reference anchor="ES6" target="https://www.ecma-international.org/ecma-262/6.0/ECMA-262.pdf">
+        <front>
+          <title>ECMAScript 2015 Language Specification</title>
+          <author>
+            <organization>Ecma International</organization>
+          </author>
+          <date/>
+        </front>
+      </reference>
+      <reference anchor="UNICODE" target="https://www.unicode.org/versions/Unicode10.0.0/">
+        <front>
+          <title>The Unicode Standard, Version 10.0.0</title>
+          <author>
+            <organization>The Unicode Consortium</organization>
+          </author>
+          <date/>
+        </front>
+      </reference>
+    </references>
+    <references title="Informal References">
+      <reference anchor="NODEJS" target="https://nodejs.org">
+        <front>
+          <title>Node.js</title>
+          <author/>
+          <date/>
+        </front>
+      </reference>
+      <reference anchor="OPENKEY" target="https://github.com/cyberphone/openkeystore">
+        <front>
+          <title>Open Keystore</title>
+          <author/>
+          <date/>
+        </front>
+      </reference>
+      <reference anchor="XMLDSIG" target="https://www.w3.org/TR/xmldsig-core1/">
+        <front>
+          <title>XML Signature Syntax and Processing Version 1.1</title>
+          <author>
+            <organization>W3C</organization>
+          </author>
+          <date/>
+        </front>
+      </reference>
+    </references>
 
-   <section anchor="TestVectors" title="Test Vectors">
-     <t>This section contains a set of test vectors sharing a common characteristic,
-     long lines are sliced in order to cope with RFC line length constraints.</t>
-   <section anchor="multipleglobalalg" title="Multiple Signature with Global &quot;alg&quot; Header">
-     <t>
-     <figure align="center">
-        <artwork><![CDATA[{
+    <section anchor="TestVectors" title="Test Vectors">
+      <t>
+        This section contains a set of test vectors sharing a common characteristic,
+        long lines are sliced in order to cope with RFC line length constraints.
+      </t>
+      <section anchor="multipleglobalalg" title="Multiple Signature with Global &quot;alg&quot; Header">
+        <t>
+          <figure align="center">
+            <artwork>
+              <![CDATA[{
   "iss": "joe",
   "exp": 1300819380,
   "escapeMe": "\u20ac$\u000F\u000aA'\u0042\u0022\u005c\\\"\/",
@@ -423,17 +498,20 @@ TDB
                     zAyfTBxMBWtUR5PKWi5hJWUDeMnRS0"
     }]
   }
-}]]></artwork>
-    </figure>
-     </t><t>
-       The first signature can be verified using the key specified in <xref target="example.com:p256"/>,
-     while the second signature can be verified using the key specified in <xref target="example.com:p384"/>.
-     </t>
-   </section>
-   <section anchor="multipleglobalcrit" title="Multiple Signature with Global &quot;crit&quot; Header">
-     <t>
-     <figure align="center">
-        <artwork><![CDATA[{
+}]]>
+            </artwork>
+          </figure>
+        </t>
+        <t>
+          The first signature can be verified using the key specified in <xref target="example.com:p256"/>,
+          while the second signature can be verified using the key specified in <xref target="example.com:p384"/>.
+        </t>
+      </section>
+      <section anchor="multipleglobalcrit" title="Multiple Signature with Global &quot;crit&quot; Header">
+        <t>
+          <figure align="center">
+            <artwork>
+              <![CDATA[{
   "iss": "joe",
   "exp": 1300819380,
   "escapeMe": "\u20ac$\u000F\u000aA'\u0042\u0022\u005c\\\"\/",
@@ -462,34 +540,38 @@ TDB
                     Qd8yZj5Bi5vCDcBOEKZMDoog-UzIy8SbZNl85TlkhK70oNRQ"
     }]
   }
-}]]></artwork>
-    </figure>
-     </t>
-     <t>
-       The first signature can be verified using the key specified in <xref target="example.com:p256"/>,
-     while the second signature can be verified using the key specified in <xref target="example.com:r2048"/>.
-   </t>
-   </section>
-   <section anchor="example.com:p256" title="EC Key &quot;example.com:p256&quot;">
-     <t>EC private key, here expressed in JWK notation:</t>
-     <t>
-     <figure align="center">
-        <artwork><![CDATA[{
+}]]>
+            </artwork>
+          </figure>
+        </t>
+        <t>
+          The first signature can be verified using the key specified in <xref target="example.com:p256"/>,
+          while the second signature can be verified using the key specified in <xref target="example.com:r2048"/>.
+        </t>
+      </section>
+      <section anchor="example.com:p256" title="EC Key &quot;example.com:p256&quot;">
+        <t>EC private key, here expressed in JWK notation:</t>
+        <t>
+          <figure align="center">
+            <artwork>
+              <![CDATA[{
   "kid": "example.com:p256",
   "kty": "EC",
   "crv": "P-256",
   "x": "censDzcMEkgiePz6DXB7cDuwFemshAFR90UNVQFCg8Q",
   "y": "xq8rze6ewG0-eVcSF72J77gKiD0IHnzpwHaU7t6nVeY",
   "d": "nEsftLbi5u9pI8B0-drEjIuJzQgZie3yeqUR3BwWDl4"
-}]]></artwork>
-    </figure>
-     </t>
-   </section>
-   <section anchor="example.com:p384" title="EC Key &quot;example.com:p384&quot;">
-     <t>EC private key, here expressed in JWK notation:</t>
-     <t>
-     <figure align="center">
-        <artwork><![CDATA[{
+}]]>
+            </artwork>
+          </figure>
+        </t>
+      </section>
+      <section anchor="example.com:p384" title="EC Key &quot;example.com:p384&quot;">
+        <t>EC private key, here expressed in JWK notation:</t>
+        <t>
+          <figure align="center">
+            <artwork>
+              <![CDATA[{
   "kid": "example.com:p384",
   "kty": "EC",
   "crv": "P-384",
@@ -499,15 +581,17 @@ TDB
         Xxl",
   "d": "Qsgq80kMs40sAn1gB7gLxAk1se37Kmh9AG18wWZ3SqgcPPRq1wwidNTi866Gt
         4_0"
-}]]></artwork>
-    </figure>
-     </t>
-   </section>
-     <section anchor="example.com:r2048" title="RSA Key &quot;example.com:r2048&quot;">
-     <t>RSA private key, here expressed in JWK notation:</t>
-     <t>
-     <figure align="center">
-        <artwork><![CDATA[{
+}]]>
+            </artwork>
+          </figure>
+        </t>
+      </section>
+      <section anchor="example.com:r2048" title="RSA Key &quot;example.com:r2048&quot;">
+        <t>RSA private key, here expressed in JWK notation:</t>
+        <t>
+          <figure align="center">
+            <artwork>
+              <![CDATA[{
   "kid": "example.com:r2048",
   "kty": "RSA",
   "n": "hFWEXArvaZEpSP5qNX7x4C4Hl28GJQTNvnDwkfqiWs63kXbdyPeS06bz6GnY3
@@ -538,10 +622,11 @@ TDB
   "qi": "wV0NzfCakfog1NFjtPzcga1MtkpizgPkxcP9LjNdvXW2YQZhM6GIEGjsu3iv
          TrHrrM-4_bTQHOoTtfIY7wdqBKlwQTJOI0dH9FbNJ4ecGojRwgv83TN8aNKh
          17Tt44jI5oibs2P-31B_VW9R1wwhnnOuCYpABfoSbtHIoCRme5I"
-}]]></artwork>
-    </figure>
-     </t>
-   </section>
- </section>
- </back>
+}]]>
+            </artwork>
+          </figure>
+        </t>
+      </section>
+    </section>
+  </back>
 </rfc>
