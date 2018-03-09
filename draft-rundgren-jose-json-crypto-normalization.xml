@@ -41,11 +41,11 @@
 
     <abstract>
       <t>
-        Cryprographic operations like hashing and signing depend on that the
+        Cryptographic operations like hashing and signing depend on that the
         target data does not change during serialization, transport, or parsing.
         By applying the JCN (JSON Crypto Normalization) scheme, data provided in the
-        JSON <xref target="RFC8259"/> format can be used &quot;as is&quot;,
-        while still being suitable for cryptograpgic operations.
+        JSON <xref target="RFC8259"/> format can be exchanged &quot;as is&quot;,
+        while still being suitable for cryptographic operations.
         JCN achieves this by exploiting the strict predictability
         offered by the JSON parsing and serialization methods defined in
         ECMAScript beginning with version 6 <xref target="ES6"/>.
@@ -53,7 +53,7 @@
       <t>
         The intended audience of this document is JSON tool vendors who
         may need updating their products in order to support schemes like
-        Cleartext JSON Web Signature (JWS),
+        Cleartext JSON Web Signature <xref target="CT-JWS"/>,
         building on ECMAScript <xref target="ES6"/> JSON processing rules.
         The latter also have utility outside of cryptography.
       </t>
@@ -66,7 +66,7 @@
         Cryptographic operations like hashing and signing depend on that the
         target data does not change during serialization, transport, or parsing.
         A straightforward way of accomplishing this is converting the data into
-        a format which has a simple and fix representation like Base64Url <xref target="RFC4648"/>
+        a format which has a simple and fixed representation like Base64Url <xref target="RFC4648"/>
         which for example have been used in JWS <xref target="RFC7515"/>.
         Another solution is creating a canonicalized version of the target data
         with XML Signature <xref target="XMLDSIG"/> as a prime example.
@@ -82,7 +82,7 @@
         Realistic in this context means &quot;available&quot; since ES6
         compatible JSON processing is already supported by most Web browsers,
         Node.js <xref target="NODEJS"/>,
-        as well as by third party libaries like Open&nbsp;Keystore <xref target="OPENKEY"/>.
+        as well as by third party libraries like Open&nbsp;Keystore <xref target="OPENKEY"/>.
       </t>
       <t>
         The JCN specification describes how JSON processing rules compliant
@@ -100,12 +100,11 @@
       </t>
     </section>
 
-    <section anchor="Operation" title="Operation">
+    <section anchor="Operation" title="Detailed Operation">
       <t>
-        This section elaborates on the different issues related to &quot;Crypto&nbsp;Safe&quot;
-        JSON and how they are addressed by ES6.
+        This section elaborates on the different issues related to JCN and how they are addressed by ES6.
       </t>
-      <section anchor="parsing" title="Basic JSON Parsing">
+      <section anchor="json.parsing" title="Core JSON Parsing">
         <t>
           When parsing JSON string data the following MUST be taken in account:
         </t>
@@ -178,48 +177,49 @@
           ES6 does with a minor exception described in <xref target="es6.interoperability"/>,
           maintain an internal &quot;Creation&nbsp;Order&quot; of properties, per 
           Section <xref target="ES6" format="none">9.1.12</xref> of ES6.
-          This applies to the following JCN core operations:
+          This ordering applies to the following core operations that may
+          be used for dealing with &quot;Crypto&nbsp;Safe&quot; JSON data:
         </t>
         <t>
           <list style="symbols">
             <t>
-              Creation of empty JSON object:
+              Creation of an empty JSON object:
               <list style="empty">
                 <t>obj = {}</t>
               </list>
             </t>
             <t>
-              Parsing of JSON string data to JSON object:
+              Parsing of a JSON string into a JSON object:
               <list style="empty">
                 <t>obj = JSON.parse('...')</t>
               </list>
             </t>
             <t>
-              Serialization of JSON object to JSON string:
+              Serialization of a JSON object into JSON string:
               <list style="empty">
                 <t>... = JSON.stringify(obj)</t>
               </list>
             </t>
             <t>
-              Shallow cloning of JSON object:
+              Shallow cloning (only the top level properties are copied) of a JSON object:
               <list style="empty">
                 <t>... = Object.assign({}, obj)</t>
               </list>
             </t>
             <t>
-              Deep cloning of JSON object:
+              Deep cloning of a JSON object:
               <list style="empty">
                 <t>... = JSON.parse(JSON.stringify(obj))</t>
               </list>
             </t>
             <t>
-              Deletion of JSON property:
+              Deletion of a JSON property:
               <list style="empty">
                 <t>delete obj.property</t>
               </list>
             </t>
             <t>
-              Addition of JSON property:
+              Addition of a JSON property:
               <list style="empty">
                 <t>obj.property = ...</t>
               </list>
@@ -227,11 +227,12 @@
           </list>
         </t>
         <t>
-          Although the above is specified in ES6 notation, a JCN compliant JSON tool kit
-          for another platform MUST be able providing the same functionality.
+          Although the above is specified in ES6 notation, a JSON tool kit
+          for another platform MUST be able providing the same functionality
+          in order to be compliant with this specification.
         </t>
       </section>
-      <section anchor="Serialization" title="JSON Serialization">
+      <section anchor="json.serialization" title="JSON Serialization">
         <t>
           Assume that you parse a JSON object like the following
           using the rules outlined in the previous sections:
@@ -245,9 +246,10 @@
           </figure>
         </t>
         <t>
-          Then a properly serialized output of the former would show
-          (with a line wrap between elements for display purposes only),
-          a rather divergent result with respect to data representation:
+          If you subsequently serialize the object created by the operation above,
+          using an ES compliant serializer,
+          the result would (with a line wrap between elements for display purposes only),
+          be rather divergent with respect to data representation:
         </t>
         <t>
           <figure align="center"><artwork><![CDATA[  {"escaping":"\u20ac$\u000f\nA'B\"\\\\\"/","numbers":
@@ -256,16 +258,17 @@
         </t>
         <t>Note: \u20ac denotes the Euro character, which not being ASCII, is currently not displayable in RFCs.</t>
         <t>
-          The ES6 JSON serializing rules can be summarized as:
+          For serializing JSON data according to ES6 the following apply:
           <list style="symbols">
             <t>
-              The JSON Null and Boolean data types present no challenge since they already have a
-              fixed definition in <xref target="RFC8259"/>.
+              The literals <spanx style="verb">null</spanx>, <spanx style="verb">true</spanx>,
+              and <spanx style="verb">false</spanx> present no challenge since they already have a
+              fixed definition in JSON <xref target="RFC8259"/>.
             </t>
             <t>
-              For JSON data of the type <spanx style="verb">String</spanx> (includes
-              propert names as well), each character MUST be serialized as 
-              described in ES <xref target="ES6" format="none">24.3.2.2</xref>:
+              For data of the type <spanx style="verb">String</spanx> (which includes
+              property names as well), each character MUST be serialized as 
+              described in Section <xref target="ES6" format="none">24.3.2.2</xref> of ES6:
               <list style="empty">
                 <t>
                   If the Unicode value falls within the traditional ASCII control
@@ -273,20 +276,20 @@
                   be rewritten in lowercase hexadecimal notation (\uhhhh) unless it is one
                   of the predefined JSON escapes (\" \\ \b \f \n \r \t) because
                   the latter have precedence. If the Unicode value is outside of
-                  the ASCII control character range, it must emitted &quot;as&nbsp;is&quot;.
+                  the ASCII control character range, it must be emitted &quot;as&nbsp;is&quot;.
                 </t>
               </list>
             </t>
             <t>
-              JSON data of the type <spanx style="verb">Number</spanx>, MUST be serialized according to
-              ES6 section <xref target="ES6" format="none">7.1.12.1</xref>.
+              Data of the type <spanx style="verb">Number</spanx>, MUST be serialized according to
+              Section <xref target="ES6" format="none">7.1.12.1</xref> of ES6.
               For maximum interoperability and correctness,
             </t>
           </list>
         </t>
         <t>
           The final step is converting the textual output into an UTF-8 formatted array.
-          Applied to the sample this should yield the following bytes here shown in hexadecimal notation:
+          Applied to the previous sample this should yield the following bytes here shown in hexadecimal notation:
         </t>
         <t>
           <figure align="center">
@@ -295,8 +298,9 @@
   6e 75 6d 62 65 72 73 22 3a 5b 31 65 2b 33 30 2c 34 2e 35 2c
   36 2c 30 2e 30 30 32 2c 31 65 2d 32 37 5d 7d]]></artwork>
           </figure>
-
-          
+        </t>
+        <t>
+          This data is supposed to be usable as interoperable input to cryptographic functions.
         </t>
       </section>
     </section>
@@ -332,12 +336,15 @@
     </section>
 
     <section anchor="IANA" title="IANA Considerations">
-      <t>TDB</t>
+      <t>
+        This document has no IANA actions.
+      </t>
     </section>
 
     <section anchor="Security" title="Security Considerations">
       <t>
-        TDB
+        JSON parsers MUST check that input data conforms to the JSON <xref target="RFC8259"/>
+        specification.
       </t>
     </section>
 
@@ -354,7 +361,6 @@
     <references title="Normative References">
       <?rfc include='reference.RFC.2119'?>
       <?rfc include='reference.RFC.8259'?>
-      <?rfc include='reference.RFC.4648'?>
       <?rfc include='reference.RFC.8174'?>
 
       <reference anchor="ES6" target="https://www.ecma-international.org/ecma-262/6.0/ECMA-262.pdf">
@@ -366,7 +372,7 @@
           <date/>
         </front>
       </reference>
-      <reference anchor="IEEE754" target="https://www.ecma-international.org/ecma-262/6.0/ECMA-262.pdf">
+      <reference anchor="IEEE754" target="http://grouper.ieee.org/groups/754/">
         <front>
           <title>IEEE Standard for Floating-Point Arithmetic</title>
           <author>
@@ -386,7 +392,17 @@
       </reference>
     </references>
     <references title="Informal References">
+      <?rfc include='reference.RFC.4648'?>
       <?rfc include='reference.RFC.7515'?>
+      <reference anchor="CT-JWS" target="https://tools.ietf.org/html/draft-erdtman-jose-cleartext-jws-00">
+        <front>
+          <title>Work-In-Progress: Cleartext JSON Web Signature</title>
+          <author>
+            <organization>Erdtman, S., Rundgren, A. and M. Jones</organization>
+          </author>
+          <date month="March" year="2018"/>
+        </front>
+      </reference>
       <reference anchor="NODEJS" target="https://nodejs.org">
         <front>
           <title>Node.js</title>
