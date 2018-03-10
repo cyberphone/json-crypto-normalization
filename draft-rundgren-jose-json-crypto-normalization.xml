@@ -264,7 +264,7 @@
           </t>
           <t>Note: \u20ac denotes the Euro character, which not being ASCII, is currently not displayable in RFCs.</t>
           <t>
-            The reason for the difference between the parsed data and its
+            The reason for the huge difference between the parsed data and its
             serialized counterpart, is due to a wider tolerance on input data than on output data.
             <vspace blankLines="1"/>
             For serializing JSON data according to ES6 the following rules apply:
