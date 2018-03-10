@@ -128,7 +128,7 @@
               itself.
             </t>
             <t>
-              All JSON escape sequences (\/ \&quot; \\ \b \f \n \r \t \uhhhh) within quoted strings
+              All JSON escape sequences (\/ \" \\ \b \f \n \r \t \uhhhh) within quoted strings
               MUST be converted to their proper single character internal representation.
               ES6 defines this behavior in Section <xref target="ES6" format="none">11.8.4</xref>.
             </t>
@@ -141,7 +141,7 @@
         </t>
         <t>
           However, this is not equivalent with disrespecting the order in which properties
-          are supplied in JSON data during parsing or serialization.
+          are supplied in JSON objects during parsing or serialization.
           It is obvious that if you parse (or create) a JSON object like
         </t>
         <t>
@@ -175,7 +175,7 @@
         </t>
         <t>
           ES6 does with a minor exception described in <xref target="es6.interoperability"/>,
-          maintain an internal &quot;Creation&nbsp;Order&quot; of properties, per 
+          maintain an internal &quot;Creation&nbsp;Order&quot; of properties, per
           Section <xref target="ES6" format="none">9.1.12</xref> of ES6.
           This ordering applies to the following core operations that may
           be used for dealing with &quot;Crypto&nbsp;Safe&quot; JSON data:
@@ -228,80 +228,95 @@
         </t>
         <t>
           Although the above is specified in ES6 notation, a JSON tool kit
-          for another platform MUST be able providing the same functionality
+          for another platform MUST provide the same functionality
           in order to be compliant with this specification.
         </t>
       </section>
       <section anchor="json.serialization" title="JSON Serialization">
-        <t>
-          Assume that you parse a JSON object like the following
-          using the rules outlined in the previous sections:
-        </t>
-        <t>
-          <figure align="center">
-            <artwork><![CDATA[  {
+        <section anchor="json.serialization.data" title="Serialization of Data">
+          <t>
+            Assume that you parse a JSON object like the following
+            using the rules outlined in the previous sections:
+          </t>
+          <t>
+            <figure align="center">
+              <artwork><![CDATA[  {
     "escaping": "\u20ac$\u000F\u000aA'\u0042\u0022\u005c\\\"\/",
     "numbers": [1E30,4.50,6,2e-3,0.000000000000000000000000001]
   }]]></artwork>
-          </figure>
-        </t>
-        <t>
-          If you subsequently serialize the object created by the operation above,
-          using an ES compliant serializer,
-          the result would (with a line wrap between elements for display purposes only),
-          be rather divergent with respect to data representation:
-        </t>
-        <t>
-          <figure align="center"><artwork><![CDATA[  {"escaping":"\u20ac$\u000f\nA'B\"\\\\\"/","numbers":
+            </figure>
+          </t>
+          <t>
+            If you subsequently serialize the object created by the operation above,
+            using an ES compliant serializer,
+            the result would (with a line wrap between elements for display purposes only),
+            be rather divergent with respect to data representation:
+          </t>
+          <t>
+            <figure align="center">
+              <artwork><![CDATA[  {"escaping":"\u20ac$\u000f\nA'B\"\\\\\"/","numbers":
   [1e+30,4.5,6,0.002,1e-27]}]]></artwork>
-          </figure>
-        </t>
-        <t>Note: \u20ac denotes the Euro character, which not being ASCII, is currently not displayable in RFCs.</t>
-        <t>
-          For serializing JSON data according to ES6 the following apply:
-          <list style="symbols">
-            <t>
-              The literals <spanx style="verb">null</spanx>, <spanx style="verb">true</spanx>,
-              and <spanx style="verb">false</spanx> present no challenge since they already have a
-              fixed definition in JSON <xref target="RFC8259"/>.
-            </t>
-            <t>
-              For data of the type <spanx style="verb">String</spanx> (which includes
-              property names as well), each character MUST be serialized as 
-              described in Section <xref target="ES6" format="none">24.3.2.2</xref> of ES6:
-              <list style="empty">
-                <t>
-                  If the Unicode value falls within the traditional ASCII control
-                  character range (0x00-0x1f), it MUST
-                  be rewritten in lowercase hexadecimal notation (\uhhhh) unless it is one
-                  of the predefined JSON escapes (\" \\ \b \f \n \r \t) because
-                  the latter have precedence. If the Unicode value is outside of
-                  the ASCII control character range, it must be emitted &quot;as&nbsp;is&quot;.
-                </t>
-              </list>
-            </t>
-            <t>
-              Data of the type <spanx style="verb">Number</spanx>, MUST be serialized according to
-              Section <xref target="ES6" format="none">7.1.12.1</xref> of ES6.
-              For maximum interoperability and correctness,
-            </t>
-          </list>
-        </t>
-        <t>
-          The final step is converting the textual output into an UTF-8 formatted array.
-          Applied to the previous sample this should yield the following bytes here shown in hexadecimal notation:
-        </t>
-        <t>
-          <figure align="center">
-            <artwork><![CDATA[  7b 22 65 73 63 61 70 69 6e 67 22 3a 22 e2 82 ac 24 5c 75 30
+            </figure>
+          </t>
+          <t>Note: \u20ac denotes the Euro character, which not being ASCII, is currently not displayable in RFCs.</t>
+          <t>
+            The reason for this difference is due to a wider tolerance on input data than on output data.
+            For serializing JSON data according to ES6 the following rules apply:
+            <list style="symbols">
+              <t>
+                The literals <spanx style="verb">null</spanx>, <spanx style="verb">true</spanx>,
+                and <spanx style="verb">false</spanx> present no challenge since they already have a
+                fixed definition in JSON <xref target="RFC8259"/>.
+              </t>
+              <t>
+                For data of the type <spanx style="verb">String</spanx> (which includes
+                property names as well), each character MUST be serialized as
+                described in Section <xref target="ES6" format="none">24.3.2.2</xref> of ES6:
+                <list style="empty">
+                  <t>
+                    If the Unicode value falls within the traditional ASCII control
+                    character range (0x00-0x1f), it MUST
+                    be rewritten in lowercase hexadecimal notation (\uhhhh) unless it is one
+                    of the predefined JSON escapes (\" \\ \b \f \n \r \t) because
+                    the latter have precedence. If the Unicode value is outside of
+                    the ASCII control character range, it MUST be emitted &quot;as&nbsp;is&quot;.
+                  </t>
+                </list>
+              </t>
+              <t>
+                Data of the type <spanx style="verb">Number</spanx>, MUST be serialized according to
+                Section <xref target="ES6" format="none">7.1.12.1</xref> of ES6; for
+                maximum interoperability preferably including the "Note 2" enhancement as well.
+                The latter is implemented by for example Google's V8 <xref target="V8"/>.
+                <vspace blankLines="1"/>
+                Due to the relative complexity of this part it is not duplicated in this specification.
+                <vspace blankLines="1"/>
+                Note that ES6 builds on the IEEE-754 <xref target="IEEE754"/> double precision
+                standard for storing <spanx style="verb">Number</spanx> data.  If the target
+                JSON system uses another format it may be difficult achieving interoperability
+                with respect to numeric data.  <xref target="ieee754.test"/> holds a set of
+                test values.
+              </t>
+            </list>
+          </t>
+        </section>
+        <section anchor="json.utf8" title="UTF-8 Generation">
+          <t>
+            The final step is converting the textual output into an UTF-8 formatted array.
+            Applied to the previous sample this should yield the following bytes here shown in hexadecimal notation:
+          </t>
+          <t>
+            <figure align="center">
+              <artwork><![CDATA[  7b 22 65 73 63 61 70 69 6e 67 22 3a 22 e2 82 ac 24 5c 75 30
   30 30 66 5c 6e 41 27 42 5c 22 5c 5c 5c 5c 5c 22 2f 22 2c 22
   6e 75 6d 62 65 72 73 22 3a 5b 31 65 2b 33 30 2c 34 2e 35 2c
   36 2c 30 2e 30 30 32 2c 31 65 2d 32 37 5d 7d]]></artwork>
-          </figure>
-        </t>
-        <t>
-          This data is supposed to be usable as interoperable input to cryptographic functions.
-        </t>
+            </figure>
+          </t>
+          <t>
+            This data is supposed to be usable as interoperable input to cryptographic functions.
+          </t>
+        </section>
       </section>
     </section>
     <section anchor="es6.interoperability" title="ES6 Interoperability">
@@ -324,7 +339,7 @@
         </figure>
       </t>
       <t>
-        which is in conflict with the requirements specified in <xref target="json.proporder"/>.
+        which is in conflict with the requirements stated in <xref target="json.proporder"/>.
         Due to this fact, signature creators MUST
         "emulate" this scheme since this behavior is not
         intended to be an additional requirement to support by JSON tools in
@@ -363,7 +378,16 @@
       <?rfc include='reference.RFC.8259'?>
       <?rfc include='reference.RFC.8174'?>
 
-      <reference anchor="ES6" target="https://www.ecma-international.org/ecma-262/6.0/ECMA-262.pdf">
+      <reference anchor="V8" target="https://developers.google.com/v8/">
+        <front>
+          <title>Chrome V8 Open Source JavaScript Engine</title>
+          <author>
+            <organization>Google LLC</organization>
+          </author>
+          <date/>
+        </front>
+      </reference>
+      <reference anchor="ES6" target="https://www.ecma-international.org/ecma-262/6.0/index.html">
         <front>
           <title>ECMAScript 2015 Language Specification</title>
           <author>
@@ -428,12 +452,13 @@
       </reference>
     </references>
 
-    <section anchor="TestVectors" title="Sample Number Serializations">
+    <section anchor="ieee754.test" title="Sample Number Serializations">
       <t>
         The following table holds a set of ES6 <spanx style="verb">Number</spanx> serializations including
         some edge cases.  The field  &quot;ES6&nbsp;Internal&quot; refers to the internal
         ES6 representation of the <spanx style="verb">Number</spanx> data type which is based on the
-        IEEE-754 <xref target="IEEE754"/> standard using 64-bit precision values, here expressed in hexadecimal.
+        IEEE-754 <xref target="IEEE754"/> standard using 64-bit (double precision) values,
+        here expressed in hexadecimal.
       </t>
       <t>
         <figure align="center">
