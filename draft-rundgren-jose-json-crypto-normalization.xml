@@ -112,13 +112,15 @@
           <list style="symbols">
             <t>
               The input data MUST conform to JSON as specified in <xref target="RFC8259"/>.
+              <vspace blankLines="1"/>
               Note: ES6 requires that data encoded as UTF-8 <xref target="UNICODE"/>,
-              is converted to the ES6 string format, in order to make it processable
+              is converted to the internal ES6 string format, in order to make it processable
               by the ES6 <spanx style="verb">JSON.parse()</spanx> method.
             </t>
             <t>
-              The property names within a JSON object MUST be unique.  Note: this is
-              currently not checked by ES6 compatible parsers.
+              The property names within a JSON object MUST be unique.
+              <vspace blankLines="1"/>
+              Note: this is currently not checked by ES6 compatible parsers.
             </t>
             <t>
               Whitespace MUST be removed which in practical terms means removal
@@ -128,8 +130,10 @@
               itself.
             </t>
             <t>
-              All JSON escape sequences (\/ \" \\ \b \f \n \r \t \uhhhh) within quoted strings
-              MUST be converted to their proper single character internal representation.
+              All JSON escape sequences
+              (\/&nbsp;\"&nbsp;\\&nbsp;\b&nbsp;\f&nbsp;\n&nbsp;\r&nbsp;\t&nbsp;\uhhhh)
+              within quoted strings MUST be converted to their proper single
+              character internal representation.
               ES6 defines this behavior in Section <xref target="ES6" format="none">11.8.4</xref>.
             </t>
           </list>
@@ -271,17 +275,17 @@
               <t>
                 For data of the type <spanx style="verb">String</spanx> (which includes
                 property names as well), each character MUST be serialized as
-                described in Section <xref target="ES6" format="none">24.3.2.2</xref> of ES6:
-                <list style="empty">
-                  <t>
-                    If the Unicode value falls within the traditional ASCII control
-                    character range (0x00-0x1f), it MUST
-                    be rewritten in lowercase hexadecimal notation (\uhhhh) unless it is one
-                    of the predefined JSON escapes (\" \\ \b \f \n \r \t) because
-                    the latter have precedence. If the Unicode value is outside of
-                    the ASCII control character range, it MUST be emitted &quot;as&nbsp;is&quot;.
-                  </t>
-                </list>
+                described in Section <xref target="ES6" format="none">24.3.2.2</xref> of ES6.
+                <vspace blankLines="1"/>
+                If the Unicode value falls within the traditional ASCII control
+                character range (0x00-0x1f), it MUST
+                be rewritten in lowercase hexadecimal Unicode notation (\uhhhh) unless it is one
+                of the predefined JSON escape characters (\b&nbsp;\f&nbsp;\n&nbsp;\r&nbsp;\t)
+                because the latter have precedence.
+                <vspace blankLines="1"/>
+                If the Unicode value is outside of the ASCII control character range, it MUST
+                be emitted &quot;as&nbsp;is&quot; unless it is equivalent to
+                0x5c&nbsp;(\) or 0x22&nbsp;(") which MUST be emitted as \\ and \" respectively.
               </t>
               <t>
                 Data of the type <spanx style="verb">Number</spanx>, MUST be serialized according to
@@ -293,9 +297,10 @@
                 <vspace blankLines="1"/>
                 Note that ES6 builds on the IEEE-754 <xref target="IEEE754"/> double precision
                 standard for storing <spanx style="verb">Number</spanx> data.  If the target
-                JSON system uses another format it may be difficult achieving interoperability
-                with respect to numeric data.  <xref target="ieee754.test"/> holds a set of
-                test values.
+                JSON system uses another format it may be difficult achieving full
+                interoperability with respect to numeric data.
+                <vspace blankLines="1"/>
+                <xref target="ieee754.test"/> holds a set of test values.
               </t>
             </list>
           </t>
@@ -314,7 +319,8 @@
             </figure>
           </t>
           <t>
-            This data is supposed to be usable as interoperable input to cryptographic functions.
+            This data is intended to be usable as 
+            interoperable input to cryptographic functions.
           </t>
         </section>
       </section>
