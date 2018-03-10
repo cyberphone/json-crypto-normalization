@@ -279,14 +279,13 @@
                 <vspace blankLines="1"/>
                 If the Unicode value falls within the traditional ASCII control
                 character range (0x0000-0x001f), it MUST
-                be rewritten in lowercase hexadecimal Unicode notation (\uhhhh) unless it is one
-                of the predefined JSON escape characters 0x0008&nbsp;(\b), 0x000c&nbsp;(\f),
-                0x000a&nbsp;(n\), 0x000d&nbsp;(\r), or 0x0009&nbsp;(\t)
-                because the latter have precedence.
+                be serialized using lowercase hexadecimal Unicode notation (\uhhhh) unless it is one
+                of the predefined JSON escape characters 0x0008, 0x000c, 0x000a, 0x000d, or 0x0009
+                which MUST be serialized as \b, \f, \n, \r and \t respectively.
                 <vspace blankLines="1"/>
                 If the Unicode value is outside of the ASCII control character range, it MUST
-                be emitted &quot;as&nbsp;is&quot; unless it is equivalent to
-                0x005c&nbsp;(\) or 0x0022&nbsp;(") which MUST be emitted as \\ and \" respectively.
+                be serialized &quot;as&nbsp;is&quot; unless it is equivalent to
+                0x005c&nbsp;(\) or 0x0022&nbsp;(") which MUST be serialized as \\ and \" respectively.
               </t>
               <t>
                 Data of the type <spanx style="verb">Number</spanx>, MUST be serialized according to
@@ -294,7 +293,7 @@
                 maximum interoperability preferably including the "Note 2" enhancement as well.
                 The latter is implemented by for example Google's V8 <xref target="V8"/>.
                 <vspace blankLines="1"/>
-                Due to the relative complexity of this part it is not duplicated in this specification.
+                Due to the relative complexity of this part, it is not included in this specification.
                 <vspace blankLines="1"/>
                 Note that ES6 builds on the IEEE-754 <xref target="IEEE754"/> double precision
                 standard for storing <spanx style="verb">Number</spanx> data.  If the target
@@ -309,7 +308,7 @@
         <section anchor="json.utf8" title="UTF-8 Generation">
           <t>
             The final step is converting the textual output into an UTF-8 formatted array.
-            Applied to the previous sample this should yield the following bytes here shown in hexadecimal notation:
+            Applied to the sample in <xref target="json.serialization.data"/> this should yield the following bytes here shown in hexadecimal notation:
           </t>
           <t>
             <figure align="center">
@@ -350,8 +349,9 @@
         Due to this fact, signature creators MUST
         "emulate" this scheme since this behavior is not
         intended to be an additional requirement to support by JSON tools in
-        general in order to use this specification.   The easiest way
-        accomplishing this is to programmatically make sure that possible
+        general in order to use this specification.
+        <vspace blankLines="1"/>
+        The easiest way accomplishing this is to programmatically make sure that possible
         numeric property names always are created first and added in ascending
         order.
       </t>
@@ -385,15 +385,6 @@
       <?rfc include='reference.RFC.8259'?>
       <?rfc include='reference.RFC.8174'?>
 
-      <reference anchor="V8" target="https://developers.google.com/v8/">
-        <front>
-          <title>Chrome V8 Open Source JavaScript Engine</title>
-          <author>
-            <organization>Google LLC</organization>
-          </author>
-          <date/>
-        </front>
-      </reference>
       <reference anchor="ES6" target="https://www.ecma-international.org/ecma-262/6.0/index.html">
         <front>
           <title>ECMAScript 2015 Language Specification</title>
@@ -425,6 +416,15 @@
     <references title="Informal References">
       <?rfc include='reference.RFC.4648'?>
       <?rfc include='reference.RFC.7515'?>
+      <reference anchor="V8" target="https://developers.google.com/v8/">
+        <front>
+          <title>Chrome V8 Open Source JavaScript Engine</title>
+          <author>
+            <organization>Google LLC</organization>
+          </author>
+          <date/>
+        </front>
+      </reference>
       <reference anchor="CT-JWS" target="https://tools.ietf.org/html/draft-erdtman-jose-cleartext-jws-00">
         <front>
           <title>Work-In-Progress: Cleartext JSON Web Signature</title>
