@@ -279,8 +279,8 @@
                 <vspace blankLines="1"/>
                 If the Unicode value falls within the traditional ASCII control
                 character range (0x0000-0x001f), it MUST
-                be serialized using lowercase hexadecimal Unicode notation (\uhhhh) unless it is one
-                of the predefined JSON escape characters 0x0008, 0x0009, 0x000a, 0x000c or 0x000d
+                be serialized using lowercase hexadecimal Unicode notation (\uhhhh) unless it is in the
+                set of predefined JSON control characters 0x0008, 0x0009, 0x000a, 0x000c or 0x000d
                 which MUST be serialized as \b, \t, \n, \f and \r respectively.
                 <vspace blankLines="1"/>
                 If the Unicode value is outside of the ASCII control character range, it MUST
