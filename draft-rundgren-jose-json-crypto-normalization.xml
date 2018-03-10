@@ -278,14 +278,15 @@
                 described in Section <xref target="ES6" format="none">24.3.2.2</xref> of ES6.
                 <vspace blankLines="1"/>
                 If the Unicode value falls within the traditional ASCII control
-                character range (0x00-0x1f), it MUST
+                character range (0x0000-0x001f), it MUST
                 be rewritten in lowercase hexadecimal Unicode notation (\uhhhh) unless it is one
-                of the predefined JSON escape characters (\b&nbsp;\f&nbsp;\n&nbsp;\r&nbsp;\t)
+                of the predefined JSON escape characters 0x0008&nbsp;(\b), 0x000c&nbsp;(\f),
+                0x000a&nbsp;(n\), 0x000d&nbsp;(\r), or 0x0009&nbsp;(\t)
                 because the latter have precedence.
                 <vspace blankLines="1"/>
                 If the Unicode value is outside of the ASCII control character range, it MUST
                 be emitted &quot;as&nbsp;is&quot; unless it is equivalent to
-                0x5c&nbsp;(\) or 0x22&nbsp;(") which MUST be emitted as \\ and \" respectively.
+                0x005c&nbsp;(\) or 0x0022&nbsp;(") which MUST be emitted as \\ and \" respectively.
               </t>
               <t>
                 Data of the type <spanx style="verb">Number</spanx>, MUST be serialized according to
