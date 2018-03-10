@@ -252,7 +252,7 @@
           </t>
           <t>
             If you subsequently serialize the object created by the operation above,
-            using an ES compliant serializer,
+            using an ES6 compliant serializer,
             the result would (with a line wrap between elements for display purposes only),
             be rather divergent with respect to data representation:
           </t>
