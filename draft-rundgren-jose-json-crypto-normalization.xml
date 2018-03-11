@@ -114,7 +114,8 @@
               The input data MUST conform to JSON as specified in <xref target="RFC8259"/>.
               <vspace blankLines="1"/>
               Note: ES6 requires that data encoded as UTF-8 <xref target="UNICODE"/>,
-              is converted to the internal ES6 string format, in order to make it processable
+              is converted to the internal ES6 string format (which is based on UTF-16),
+              in order to make it processable
               by the ES6 <spanx style="verb">JSON.parse()</spanx> method.
             </t>
             <t>
@@ -487,6 +488,8 @@
 | ffefffffffffffff | -1.7976931348623157e+308 | Largest negative  |
 |-----------------------------------------------------------------|
 | 7fffffffffffffff |                          | Error (NaN)       |
+|-----------------------------------------------------------------|
+| 7ff0000000000000 |                          | Error (Infinity)  |
 |-----------------------------------------------------------------|
 | 44b52d02c7e14af5 | 9.999999999999997e+22    |                   |
 |-----------------------------------------------------------------|
