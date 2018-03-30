@@ -1,3 +1,5 @@
+Although working, this scheme has been superseded by [JSON Canonicalization](https://github.com/cyberphone/json-canonicalization).
+
 # json-crypto-normalization
 Internet-Draft describing the JSON processing rules used in Cleartext JWS and JWE as well as in some other schemes
 where "Crypto Safe" JSON is utilized.
